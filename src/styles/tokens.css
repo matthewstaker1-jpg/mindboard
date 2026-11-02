@@ -12,11 +12,18 @@
   --line: #2a2e37;
   --text: #ecedef;
   --muted: #9aa0ab;
+  --muted-soft: #8a909b;
+  --faint: #6f7682;
+  --dim: #5d636e;
+  --line-strong: #3a3f4a;
 
   /* Accents */
   --lime: #c6f432;
   --amber: #ffb547;
   --coral: #e86a5b;
+  --lime-wash: #1a2010;
+  --amber-wash: #221a10;
+  --amber-line: #5c4320;
 
   /* Board squares */
   --board-light: #8e97a8;

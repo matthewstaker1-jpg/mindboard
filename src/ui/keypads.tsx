@@ -99,7 +99,9 @@ export function NotationKeyboard({
 
   useKeys(!disabled, (e) => {
     const k = e.key;
-    if (k === 'Enter') latest.current && onSubmit(latest.current);
+    if (k === 'Enter') {
+      if (latest.current) onSubmit(latest.current);
+    }
     else if (k === 'Backspace') back();
     else if (/^[KQRBNa-hx1-8=+#-]$/.test(k)) add(k);
     else if (k === 'O' || k === 'o' || k === '0') add('O');

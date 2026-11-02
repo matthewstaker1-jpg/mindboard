@@ -28,7 +28,7 @@
   cursor: pointer;
   text-decoration: none;
 }
-.btn:hover { border-color: #3a3f4a; }
+.btn:hover { border-color: var(--line-strong); }
 .btn--primary {
   background: var(--lime);
   border-color: var(--lime);

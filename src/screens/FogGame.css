@@ -91,7 +91,7 @@
   border-radius: 12px;
   font-size: 14px;
 }
-.game__msg--warn { background: #221a10; border: 1px solid #5c4320; color: var(--amber); }
+.game__msg--warn { background: var(--amber-wash); border: 1px solid var(--amber-line); color: var(--amber); }
 .game__msg--info { background: var(--surface); border: 1px solid var(--line); }
 .game__choices { display: flex; gap: 10px; flex-wrap: wrap; }
 
@@ -135,7 +135,7 @@
   font-size: 22px;
   font-weight: 700;
 }
-.game__input input::placeholder { color: #5d636e; font-size: 15px; font-weight: 500; }
+.game__input input::placeholder { color: var(--dim); font-size: 15px; font-weight: 500; }
 .game__input .btn { height: 44px; border-radius: 12px; }
 
 .recall {
@@ -224,7 +224,7 @@
 .game__links button {
   border: 0;
   background: none;
-  color: #6f7682;
+  color: var(--faint);
   font: 500 13px var(--font-ui);
   text-decoration: underline;
   text-underline-offset: 3px;

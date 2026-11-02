@@ -200,12 +200,13 @@ export function VoicePanel({ game, fen, yourTurn, onMove, onTakeBack, onResign, 
 
   useEffect(() => {
     const r = rec.current;
+    const s = speaker.current;
     r.onPhrase = (alts) => void phraseRef.current(alts);
     r.onState = setListening;
     r.onError = (m) => setStatus(m);
     return () => {
       r.stop();
-      speaker.current.cancel();
+      s.cancel();
       if (timer.current) clearTimeout(timer.current);
     };
   }, []);

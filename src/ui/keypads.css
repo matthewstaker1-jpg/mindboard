@@ -48,7 +48,7 @@
   cursor: pointer;
   padding: 0;
 }
-.key:hover:not(:disabled) { border-color: #3a3f4a; }
+.key:hover:not(:disabled) { border-color: var(--line-strong); }
 .key:active:not(:disabled) { transform: translateY(1px); }
 .key:disabled { opacity: 0.5; cursor: default; }
 .key[data-on] {

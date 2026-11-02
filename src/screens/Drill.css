@@ -47,7 +47,7 @@
 .prompt__tag {
   display: inline-block;
   margin-left: 2px;
-  color: #6f7682;
+  color: var(--faint);
   font-size: 12px;
 }
 .prompt--split {
@@ -81,7 +81,7 @@
   margin: 8px 0 0;
   text-align: center;
   font-size: 12px;
-  color: #6f7682;
+  color: var(--faint);
 }
 
 .feedback {
@@ -95,12 +95,12 @@
   display: flex;
   align-items: center;
   gap: 12px;
-  background: #1a2010;
-  border: 1px solid #4d5822;
+  background: var(--lime-wash);
+  border: 1px solid var(--void-from-dark);
 }
 .feedback--wrong {
-  background: #221a10;
-  border: 1px solid #5c4320;
+  background: var(--amber-wash);
+  border: 1px solid var(--amber-line);
 }
 .feedback__line {
   display: flex;
@@ -141,7 +141,7 @@
   font: 700 16px var(--font-mono);
   cursor: pointer;
 }
-.bonus__opt:hover:not(:disabled) { border-color: #3a3f4a; }
+.bonus__opt:hover:not(:disabled) { border-color: var(--line-strong); }
 .bonus__opt[data-state='right'] { border: 2px solid var(--lime); }
 .bonus__opt[data-state='wrong'] { border: 2px solid var(--amber); color: var(--amber); }
 .bonus__opt:disabled { cursor: default; }

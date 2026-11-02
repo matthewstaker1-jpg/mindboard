@@ -36,4 +36,4 @@
 .voice__heard { color: var(--muted); }
 .voice__heard .mono { color: var(--text); }
 .voice__choices { display: flex; gap: 8px; flex-wrap: wrap; }
-.voice__help { font-size: 12px; color: #6f7682; }
+.voice__help { font-size: 12px; color: var(--faint); }
