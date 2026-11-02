@@ -6,8 +6,8 @@ import { normaliseSanAnswer } from '../chess/notation';
 import { type Question, expectedAnswer } from '../drills/questions';
 import { type SessionState, isFinished, newSession, nextQuestion, submitAnswer, summarise } from '../drills/session';
 import { ALL_LEVELS, levelHref, stagePosition } from '../levels/all';
-import { type LevelDef, type SessionSummary, passes } from '../levels/ladder';
-import { dueSquares, withAnswer, withSession } from '../progress/progress';
+import { type LevelDef, type SessionSummary, canMoveOn, passes } from '../levels/ladder';
+import { dueSquares, withAnswer, withMovedOn, withSession } from '../progress/progress';
 import { usePref, useProgress } from '../progress/store';
 import { moveToWords, squareWords } from '../chess/spoken';
 import { Speaker } from '../voice/recogniser';
@@ -118,7 +118,7 @@ export function Drill({ level, onDone, onFinish }: { level: LevelDef; onDone?: (
   const pos = stagePosition(level.id);
 
   if (phase === 'done' && summary) {
-    return <Results level={level} summary={summary} bestRun={Math.max(...runs(session))} onDone={onDone} onRetry={() => {
+    return <Results level={level} summary={summary} bestRun={Math.max(...runs(session))} onDone={onDone} onMoveOn={() => update((p) => withMovedOn(p, level.id))} onRetry={() => {
       const s = newSession(level);
       setSummary(null);
       setSession(s);
@@ -489,12 +489,14 @@ function Results({
   bestRun,
   onRetry,
   onDone,
+  onMoveOn,
 }: {
   level: LevelDef;
   summary: SessionSummary;
   bestRun: number;
   onRetry: () => void;
   onDone?: () => void;
+  onMoveOn: () => void;
 }) {
   if (onDone) {
     return (
@@ -517,6 +519,7 @@ function Results({
   const nextLevel = ALL_LEVELS[idx + 1];
   const pct = Math.round((summary.correct / summary.total) * 100);
   const need = Math.round(level.pass.minAccuracy * 100);
+  const moveOn = !passed && nextLevel != null && canMoveOn(level, summary);
   return (
     <div className="app results">
       <p className="eyebrow">
@@ -530,6 +533,12 @@ function Results({
             : 'That was the last level.'
           : `You need ${need}%${level.pass.maxMedianMs ? ` and a median under ${secs(level.pass.maxMedianMs)}` : ''} to pass.`}
       </p>
+      {moveOn && (
+        <p className="muted results__moveon">
+          Close enough to go on. This level gets a come-back mark, and a few of its questions turn up in Today's warm-up
+          until you pass it.
+        </p>
+      )}
       <div className="results__stats">
         <div>
           <span className="mono">
@@ -551,6 +560,15 @@ function Results({
           <a className="btn btn--primary btn--block" href={levelHref(nextLevel)}>
             Next level →
           </a>
+        ) : moveOn ? (
+          <>
+            <a className="btn btn--primary btn--block" href={levelHref(nextLevel!)} onClick={onMoveOn}>
+              Move on anyway →
+            </a>
+            <button type="button" className="btn btn--block" onClick={onRetry}>
+              Try again
+            </button>
+          </>
         ) : (
           <button type="button" className="btn btn--primary btn--block" onClick={onRetry}>
             Try again

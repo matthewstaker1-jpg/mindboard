@@ -1,7 +1,6 @@
 import { useState } from 'react';
-import { ALL_LEVELS } from '../levels/all';
-import { warmupLevel } from '../levels/ladder';
-import { displayStreak, isPassed, withTodayDone } from '../progress/progress';
+import { levelById, warmupLevel } from '../levels/ladder';
+import { displayStreak, isMovedOn, isPassed, movedOnLevels, withTodayDone } from '../progress/progress';
 import { useProgress } from '../progress/store';
 import { Drill } from './Drill';
 import { FollowMoves } from './FollowMoves';
@@ -13,7 +12,8 @@ const STEPS = ['Warm-up', 'Follow the moves', 'Study a position'] as const;
 /**
  * One button a day, 5–10 minutes: a quick square warm-up, a round of Follow
  * the moves, and one study position. Weak squares come up in the warm-up by
- * themselves, because the drill queue favours them.
+ * themselves, because the drill queue favours them; levels you moved on from
+ * add a few of their own questions.
  */
 export function Today() {
   const { progress, update } = useProgress();
@@ -25,8 +25,10 @@ export function Today() {
     setStep(step + 1);
     window.scrollTo(0, 0);
   };
-  // Labels come off once you've passed the labels-off levels.
-  const labels = !isPassed(progress, ALL_LEVELS.find((l) => l.id === 'name-nolabels')!.id);
+  // Labels come off once you've reached the labels-off levels (passed or moved on from).
+  const labels = !isPassed(progress, 'name-nolabels') && !isMovedOn(progress, 'name-nolabels');
+  // Drill levels you moved on from come back a few questions at a time.
+  const comeBack = movedOnLevels(progress).flatMap((id) => levelById(id) ?? []);
 
   const bar = (
     <div className="today-bar">
@@ -58,7 +60,7 @@ export function Today() {
   return (
     <>
       {bar}
-      {step === 0 && <Drill key="warmup" level={warmupLevel(labels)} onDone={next} />}
+      {step === 0 && <Drill key="warmup" level={warmupLevel(labels, comeBack)} onDone={next} />}
       {step === 1 && <FollowMoves key="follow" onDone={next} />}
       {step === 2 && <Study key="study" onDone={next} />}
     </>

@@ -50,6 +50,8 @@ Chess logic stays out of React components; screens call pure functions and the `
 |---|---|---|
 | 1 Learn the board (7) | Name / find square from White, from Black, labels off; Against the clock | Accuracy, plus a median time on the clock level |
 | 2 Moves & notation (6) | Write the move, captures & checks, read the move, castling & promotion, knight paths, mixed review | Accuracy |
+
+**Move on anyway** (drill levels): within 15 points of the pass mark (15/20 on a 90% level, 70% on an 85% one; speed ignored), you can go on to the next level. The level is marked *come back*: its drill kinds join Today's warm-up (+2 questions each, up to 20) until you pass it, and the ladder isn't finished while any remain.
 | 3 Fade the board (7) | Fade as they move, Fog 2 / 4 / 6, Pawnless, Ghost army, Dark board (last move only) | 2 of your last 3 games count |
 | 4 Full blindfold (2) | Move list only, Full blindfold | 2 of your last 3 games count |
 

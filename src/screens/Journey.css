@@ -58,6 +58,7 @@
   background: var(--line);
 }
 .hero__segs span[data-on] { background: var(--lime); }
+.hero__segs span[data-back] { background: var(--amber-line); }
 .hero__segs span[data-cur]:not([data-on]) { box-shadow: inset 0 0 0 2px var(--lime); }
 .hero__meta {
   display: flex;
@@ -168,6 +169,8 @@
   background: var(--lime);
 }
 .path__node[data-state='open'] { border-color: var(--muted); }
+.path__node[data-state='back'] { border-color: var(--amber); border-style: dashed; }
+.path__back { color: var(--amber); font-weight: 700; }
 .path__title { flex: 1; font-size: 17px; font-weight: 500; }
 .path li[data-state='cur'] .path__title { font-weight: 700; }
 .path li[data-state='lock'] .path__title { color: var(--muted-soft); }

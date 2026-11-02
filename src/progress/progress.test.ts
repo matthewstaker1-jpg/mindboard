@@ -5,9 +5,12 @@ import {
   dayKey,
   displayStreak,
   emptyProgress,
+  isMovedOn,
   isUnlocked,
   levelsPassed,
+  movedOnLevels,
   withAnswer,
+  withMovedOn,
   withSession,
 } from './progress';
 import { median, weakestSquares } from './stats';
@@ -30,6 +33,25 @@ describe('progress', () => {
     p = withSession(p, l0, { correct: 2, total: 20, medianMs: 1000 }, day('2026-11-02'));
     expect(p.levels[l0.id]).toMatchObject({ passed: true, best: { correct: 20 } });
     expect(levelsPassed(p)).toBe(1);
+  });
+
+  it('opens the next level after moving on, and keeps the old one to come back to', () => {
+    const [l0, l1, l2] = LADDER;
+    let p = withSession(emptyProgress(), l0!, { correct: 16, total: 20, medianMs: 1000 }, day('2026-11-02'));
+    p = withMovedOn(p, l0!.id);
+    expect(currentLevelIndex(p)).toBe(1);
+    expect(isUnlocked(p, 0)).toBe(true);
+    expect(isMovedOn(p, l0!.id)).toBe(true);
+    expect(levelsPassed(p)).toBe(0);
+    p = withMovedOn(p, l1!.id);
+    expect(currentLevelIndex(p)).toBe(2);
+    expect(movedOnLevels(p)).toEqual([l0!.id, l1!.id]);
+    // Passing it later clears the come-back mark; the ladder position doesn't move back.
+    p = withSession(p, l0!, { correct: 20, total: 20, medianMs: 1000 }, day('2026-11-03'));
+    expect(isMovedOn(p, l0!.id)).toBe(false);
+    expect(movedOnLevels(p)).toEqual([l1!.id]);
+    expect(currentLevelIndex(p)).toBe(2);
+    expect(isUnlocked(p, LADDER.indexOf(l2!) + 1)).toBe(false);
   });
 
   it('counts a day streak and resets after a missed day', () => {

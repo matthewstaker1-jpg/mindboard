@@ -70,6 +70,12 @@ export function Help() {
           Drills: get enough right (and sometimes fast enough). Games: two of your last three games must count. A game counts
           if you don't lose and stay within the slip limit.
         </dd>
+        <dt>Move on anyway</dt>
+        <dd>
+          Just missed a drill level (15 out of 20 on a 90% level)? You can go on to the next one. The level you left gets an
+          amber come-back mark, and a few of its questions join Today's warm-up until you pass it. You finish the ladder
+          once every come-back level is passed.
+        </dd>
         <dt>Engine rating (≈900 and so on)</dt>
         <dd>
           How strong the computer plays, measured by playing it against Stockfish's own rating-limited mode, so it's a fair

@@ -209,17 +209,32 @@ export function passes(level: LevelDef, s: SessionSummary): boolean {
   return true;
 }
 
-/** Today's warm-up: a short mixed square drill (not part of the ladder). */
-export function warmupLevel(labels: boolean): LevelDef {
+/** How far under the pass mark you can be and still move on: 15/20 on a 90% level, 70% on an 85% one. */
+export const MOVE_ON_MARGIN = 0.15;
+
+/** A near miss: not passed, but close enough to go on and come back to this level later. Speed doesn't count. */
+export function canMoveOn(level: LevelDef, s: SessionSummary): boolean {
+  if (s.total < level.questions || passes(level, s)) return false;
+  return s.correct / s.total >= level.pass.minAccuracy - MOVE_ON_MARGIN - 1e-9;
+}
+
+/**
+ * Today's warm-up: a short mixed square drill (not part of the ladder). Levels
+ * you moved on from add their drill kinds and two questions each, so they come
+ * back a few at a time.
+ */
+export function warmupLevel(labels: boolean, comeBack: LevelDef[] = []): LevelDef {
+  const drills = [...new Set<DrillKind>(['nameSquare', 'tapSquare', ...comeBack.flatMap((l) => l.drills)])];
+  const questions = Math.min(20, 10 + 2 * comeBack.length);
   return {
     id: 'warmup',
     stage: 1,
     title: 'Warm-up',
-    blurb: 'Ten quick squares, both sides.',
-    drills: ['nameSquare', 'tapSquare'],
+    blurb: comeBack.length ? `Quick squares, plus ${comeBack.map((l) => l.title).join(', ')}.` : 'Ten quick squares, both sides.',
+    drills,
     side: 'mixed',
     labels,
-    questions: 10,
+    questions,
     targetMs: 3000,
     pass: { minAccuracy: 0.8 },
   };

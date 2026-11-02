@@ -16,6 +16,13 @@ const v1 = {
 };
 
 describe('migrate', () => {
+  it('keeps the moved-on mark and ignores anything that is not true', () => {
+    const base = { ...emptyProgress(), levels: { a: { attempts: 1, passed: false, best: null, movedOn: true }, b: { attempts: 1, passed: false, best: null, movedOn: 'yes' } } };
+    const p = migrate(base)!;
+    expect(p.levels.a!.movedOn).toBe(true);
+    expect(p.levels.b!.movedOn).toBeUndefined();
+  });
+
   it('gives fresh progress when nothing is saved', () => {
     expect(migrate(undefined)).toEqual(emptyProgress());
   });

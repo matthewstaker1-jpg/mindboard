@@ -14,6 +14,8 @@ export interface LevelRecord {
   best: SessionSummary | null;
   /** Game levels: whether each of the most recent games counted, newest last. */
   recent?: boolean[];
+  /** Drill levels: you went on after a near miss; the level waits to be passed properly. */
+  movedOn?: boolean;
   games?: { win: number; draw: number; loss: number };
 }
 
@@ -128,9 +130,23 @@ export function isPassed(p: Progress, levelId: string): boolean {
   return p.levels[levelId]?.passed ?? false;
 }
 
-/** Index into ALL_LEVELS of the first level not yet passed; ALL_LEVELS.length when all are passed. */
+/** Moved on from after a near miss and not passed since. */
+export function isMovedOn(p: Progress, levelId: string): boolean {
+  const r = p.levels[levelId];
+  return !!r?.movedOn && !r.passed;
+}
+
+/** Levels waiting for you to come back to, in ladder order. */
+export function movedOnLevels(p: Progress): string[] {
+  return ALL_LEVELS.filter((l) => isMovedOn(p, l.id)).map((l) => l.id);
+}
+
+/**
+ * Index into ALL_LEVELS of the first level neither passed nor moved on from;
+ * ALL_LEVELS.length when there's none left.
+ */
 export function currentLevelIndex(p: Progress): number {
-  const i = ALL_LEVELS.findIndex((l) => !isPassed(p, l.id));
+  const i = ALL_LEVELS.findIndex((l) => !isPassed(p, l.id) && !isMovedOn(p, l.id));
   return i === -1 ? ALL_LEVELS.length : i;
 }
 
@@ -237,6 +253,12 @@ export function withSession(p: Progress, level: LevelDef, summary: SessionSummar
     best: better(prev.best, summary) ? summary : prev.best,
   };
   return { ...p, levels: { ...p.levels, [level.id]: record }, streak: withDay(p, now) };
+}
+
+/** Go on to the next level after a near miss; this one stays to be passed later. */
+export function withMovedOn(p: Progress, levelId: string): Progress {
+  const prev = p.levels[levelId] ?? { attempts: 0, passed: false, best: null };
+  return { ...p, levels: { ...p.levels, [levelId]: { ...prev, movedOn: true } } };
 }
 
 export function engineOffset(p: Progress, levelId: string): number {

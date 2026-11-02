@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { Board, type Highlight } from '../board/Board';
 import { EMPTY_FEN, type Orientation, type Square } from '../board/squares';
 import { ALL_LEVELS, STAGE_NAMES, isGameLevel, levelHref, stagePosition } from '../levels/all';
-import { currentLevelIndex, dayKey, displayStreak, engineOffset, shownElo, isPassed, isUnlocked, levelsPassed, lostTrackSquares, dueSquares, recentPasses, withPrefs } from '../progress/progress';
+import { currentLevelIndex, dayKey, displayStreak, engineOffset, shownElo, isMovedOn, isPassed, isUnlocked, levelsPassed, movedOnLevels, lostTrackSquares, dueSquares, recentPasses, withPrefs } from '../progress/progress';
 import { weakestSquares } from '../progress/stats';
 import { currentProfile, useProgress } from '../progress/store';
 import './Journey.css';
@@ -18,7 +18,9 @@ export function Journey() {
   }} />;
 
   const cur = currentLevelIndex(progress);
-  const allDone = cur >= ALL_LEVELS.length;
+  const comeBack = movedOnLevels(progress).map((id) => ALL_LEVELS.find((l) => l.id === id)!);
+  const reachedEnd = cur >= ALL_LEVELS.length;
+  const allDone = reachedEnd && comeBack.length === 0;
   const level = ALL_LEVELS[Math.min(cur, ALL_LEVELS.length - 1)]!;
   const streak = displayStreak(progress, new Date());
   const stageLevels = ALL_LEVELS.filter((l) => l.stage === level.stage);
@@ -69,6 +71,11 @@ export function Journey() {
               {due} square{due === 1 ? '' : 's'} due for review in the warm-up
             </span>
           )}
+          {comeBack.some((l) => !isGameLevel(l)) && (
+            <span className="muted today__due">
+              Warm-up includes {comeBack.filter((l) => !isGameLevel(l)).map((l) => l.title).join(', ')}
+            </span>
+          )}
         </span>
         <span className="today__go" aria-hidden="true">
           {progress.todayDone === dayKey(new Date()) ? '✓' : '→'}
@@ -82,6 +89,17 @@ export function Journey() {
             <h1>Full blindfold</h1>
             <p className="hero__blurb">Headphones mode comes next. Replay any level below to keep sharp.</p>
           </>
+        ) : reachedEnd ? (
+          <>
+            <p className="eyebrow">Almost there</p>
+            <h1>Come back to {comeBack.length === 1 ? 'one level' : `${comeBack.length} levels`}</h1>
+            <p className="hero__blurb">
+              You've been through the whole ladder. Pass {comeBack.map((l) => l.title).join(', ')} to finish it.
+            </p>
+            <a className="btn btn--primary btn--block" href={levelHref(comeBack[0]!)}>
+              {comeBack[0]!.title} →
+            </a>
+          </>
         ) : (
           <>
             <p className="eyebrow">
@@ -93,7 +111,7 @@ export function Journey() {
             <p className="hero__blurb">{level.blurb}</p>
             <div className="hero__segs" aria-hidden="true">
               {stageLevels.map((l) => (
-                <span key={l.id} data-on={isPassed(progress, l.id) || undefined} data-cur={l.id === level.id || undefined} />
+                <span key={l.id} data-on={isPassed(progress, l.id) || undefined} data-back={isMovedOn(progress, l.id) || undefined} data-cur={l.id === level.id || undefined} />
               ))}
             </div>
             <div className="hero__meta">
@@ -206,7 +224,8 @@ export function Journey() {
                 const open = isUnlocked(progress, i);
                 const rec = progress.levels[l.id];
                 const best = rec?.best;
-                const state = passed ? 'done' : i === cur ? 'cur' : open ? 'open' : 'lock';
+                const back = isMovedOn(progress, l.id);
+                const state = passed ? 'done' : back ? 'back' : i === cur ? 'cur' : open ? 'open' : 'lock';
                 const body = (
                   <>
                     <span className="path__node" data-state={state}>
@@ -218,6 +237,7 @@ export function Journey() {
                     </span>
                     <span className="path__title">{l.title}</span>
                     <span className="mono path__meta">
+                      {back && <span className="path__back">COME BACK · </span>}
                       {best ? `${best.correct}/${best.total}` : rec?.games ? `${rec.games.win}W ${rec.games.draw}D ${rec.games.loss}L` : ''}
                     </span>
                   </>

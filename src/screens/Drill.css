@@ -161,6 +161,7 @@
   font-weight: 700;
 }
 .results__win { color: var(--lime); }
+.results__moveon { margin-top: -4px; font-size: 14px; line-height: 1.5; }
 .results p { margin: 0; }
 .results__stats {
   display: grid;
