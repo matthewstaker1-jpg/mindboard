@@ -142,8 +142,18 @@ describe('recall checks', () => {
     }
   });
 
-  it('fires every few of your moves', () => {
-    let s = newGame(level('fog-2'), seeded(13), 'w');
+  it('are off on every level for now', () => {
+    for (const l of GAME_LEVELS) expect(l.recallEvery).toBeNull();
+    let s = newGame(level('ghost-army'), seeded(30), 'w');
+    for (const [me, them] of [['e4', 'e7e5'], ['Nf3', 'b8c6'], ['Bc4', 'f8c5'], ['c3', 'g8f6'], ['d3', 'd7d6'], ['O-O', 'e8g8'], ['Re1', 'a7a6'], ['h3', 'h7h6']] as const) {
+      s = playTyped(s, me);
+      s = engineMove(s, them, seeded(31));
+      expect(s.pendingRecall).toBeNull();
+    }
+  });
+
+  it('fire every few of your moves on a level that turns them on', () => {
+    let s = newGame({ ...level('fog-2'), recallEvery: [4, 7] }, seeded(13), 'w');
     const at = s.nextRecallAt;
     expect(at).toBeGreaterThanOrEqual(4);
     expect(at).toBeLessThanOrEqual(7);

@@ -148,7 +148,7 @@ export function newGame(level: GameLevel, rng: Rng, color?: Color): GameState {
     peeksLeft: level.peeks,
     slips: [],
     ownMoves: 0,
-    nextRecallAt: between(rng, level.recallEvery),
+    nextRecallAt: level.recallEvery ? between(rng, level.recallEvery) : Infinity,
     recallMissRun: 0,
     recalls: { asked: 0, correct: 0 },
     pendingRecall: null,
@@ -242,9 +242,10 @@ export function playerMoveSquares(s: GameState, from: Square, to: Square): Playe
 export function engineMove(s: GameState, uci: string, rng: Rng): GameState {
   const next = play(s, { from: uci.slice(0, 2), to: uci.slice(2, 4), promotion: uci[4] });
   if (!next) throw new Error(`Engine played an illegal move: ${uci}`);
-  if (!next.result && next.ownMoves >= next.nextRecallAt) {
+  const every = next.level.recallEvery;
+  if (every && !next.result && next.ownMoves >= next.nextRecallAt) {
     const recall = makeRecall(next, rng);
-    if (recall) return { ...next, pendingRecall: recall, nextRecallAt: next.ownMoves + between(rng, next.level.recallEvery) };
+    if (recall) return { ...next, pendingRecall: recall, nextRecallAt: next.ownMoves + between(rng, every) };
   }
   return next;
 }

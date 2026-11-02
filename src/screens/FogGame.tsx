@@ -341,12 +341,14 @@ export function FogGame({ level }: { level: GameLevel }) {
               <span className="mono">{game.slips.length}</span>
               <span>slips (max {level.pass.maxSlips})</span>
             </div>
-            <div>
-              <span className="mono">
-                {game.recalls.correct}/{game.recalls.asked}
-              </span>
-              <span>recall checks</span>
-            </div>
+            {game.recalls.asked > 0 && (
+              <div>
+                <span className="mono">
+                  {game.recalls.correct}/{game.recalls.asked}
+                </span>
+                <span>recall checks</span>
+              </div>
+            )}
             <div>
               <span className="mono">
                 {record?.passRun ?? 0}/{level.pass.gamesInARow}

@@ -29,8 +29,12 @@ export interface GameLevel {
   view: GameView;
   showMoveList: boolean;
   peeks: number;
-  /** A recall check comes every this-many of your moves (random in range). */
-  recallEvery: [number, number];
+  /**
+   * A recall check pauses the game every this-many of your moves (random in
+   * range). Null means none: they're off on every level for now because the
+   * pause broke the flow of play.
+   */
+  recallEvery: [number, number] | null;
   pass: { result: 'not-loss'; maxSlips: number; gamesInARow: number };
 }
 
@@ -49,7 +53,7 @@ export const GAME_LEVELS: GameLevel[] = [
     view: 'board',
     showMoveList: true,
     peeks: 3,
-    recallEvery: [4, 7],
+    recallEvery: null,
     pass: PASS,
   },
   {
@@ -64,7 +68,7 @@ export const GAME_LEVELS: GameLevel[] = [
     view: 'board',
     showMoveList: true,
     peeks: 3,
-    recallEvery: [4, 7],
+    recallEvery: null,
     pass: PASS,
   },
   {
@@ -79,7 +83,7 @@ export const GAME_LEVELS: GameLevel[] = [
     view: 'board',
     showMoveList: true,
     peeks: 3,
-    recallEvery: [4, 7],
+    recallEvery: null,
     pass: PASS,
   },
   {
@@ -94,7 +98,7 @@ export const GAME_LEVELS: GameLevel[] = [
     view: 'board',
     showMoveList: true,
     peeks: 3,
-    recallEvery: [4, 7],
+    recallEvery: null,
     pass: PASS,
   },
   {
@@ -109,7 +113,7 @@ export const GAME_LEVELS: GameLevel[] = [
     view: 'board',
     showMoveList: true,
     peeks: 3,
-    recallEvery: [4, 7],
+    recallEvery: null,
     pass: PASS,
   },
   {
@@ -124,7 +128,7 @@ export const GAME_LEVELS: GameLevel[] = [
     view: 'dark',
     showMoveList: false,
     peeks: 2,
-    recallEvery: [5, 8],
+    recallEvery: null,
     pass: PASS,
   },
   {
@@ -139,7 +143,7 @@ export const GAME_LEVELS: GameLevel[] = [
     view: 'list',
     showMoveList: true,
     peeks: 2,
-    recallEvery: [5, 8],
+    recallEvery: null,
     pass: PASS,
   },
   {
@@ -154,7 +158,7 @@ export const GAME_LEVELS: GameLevel[] = [
     view: 'none',
     showMoveList: false,
     peeks: 1,
-    recallEvery: [5, 8],
+    recallEvery: null,
     pass: PASS,
   },
 ];
