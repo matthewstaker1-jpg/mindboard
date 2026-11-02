@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
 import { Board, type BoardProps, type Highlight } from '../board/Board';
-import { EMPTY_FEN, isSquare, mirrorSquare, placementFen, type Square } from '../board/squares';
+import { EMPTY_FEN, isSquare, isWhitePiece, mirrorSquare, parsePlacement, placementFen, type Square } from '../board/squares';
 import { PIECE_NAME, numberedSan } from '../chess/game';
 import { normaliseSanAnswer } from '../chess/notation';
 import { type Question, expectedAnswer } from '../drills/questions';
@@ -11,11 +11,10 @@ import { useProgress } from '../progress/store';
 import { NotationKeyboard, SquareKeypad, useKeys } from '../ui/keypads';
 import './Drill.css';
 
-type Phase = 'ask' | 'feedback' | 'bonus' | 'done';
+type Phase = 'ask' | 'feedback' | 'done';
 
 const secs = (ms: number) => `${(ms / 1000).toFixed(1)}s`;
-/** Drills answered by tapping the board. */
-const TAP_KINDS = new Set<Question['kind']>(['tapSquare', 'readMove', 'knightPath']);
+
 
 export function Drill({ level }: { level: LevelDef }) {
   const { progress, update } = useProgress();
@@ -26,7 +25,6 @@ export function Drill({ level }: { level: LevelDef }) {
   const [typed, setTyped] = useState('');
   const [correct, setCorrect] = useState(false);
   const [ms, setMs] = useState(0);
-  const [bonusPick, setBonusPick] = useState<string | null>(null);
   const [summary, setSummary] = useState<SessionSummary | null>(null);
   const startRef = useRef(0);
 
@@ -38,7 +36,6 @@ export function Drill({ level }: { level: LevelDef }) {
     setPhase('ask');
     setGiven('');
     setTyped('');
-    setBonusPick(null);
     startRef.current = performance.now();
   };
 
@@ -57,7 +54,7 @@ export function Drill({ level }: { level: LevelDef }) {
     setCorrect(r.correct);
     setMs(took);
     update((p) => withAnswer(p, q.orientation, q.statSquare, r.correct, took, r.session.run));
-    setPhase(r.correct && q.kind === 'readMove' && q.bonus ? 'bonus' : 'feedback');
+    setPhase('feedback');
   };
 
   const next = () => {
@@ -80,7 +77,7 @@ export function Drill({ level }: { level: LevelDef }) {
     return () => clearTimeout(t);
   }, [phase, correct, q?.id, level.pass.maxMedianMs]);
 
-  const canContinue = (phase === 'feedback' && !correct) || (phase === 'bonus' && bonusPick !== null);
+  const canContinue = phase === 'feedback' && !correct;
   useKeys(canContinue, (e) => {
     if (e.key === 'Enter' || e.key === ' ') {
       e.preventDefault();
@@ -135,40 +132,16 @@ export function Drill({ level }: { level: LevelDef }) {
         </span>
       </header>
 
-      {q && <Prompt q={q} level={level} />}
+      {q && <Prompt q={q} />}
 
       {q && (
         <div className="drill__board">
-          <Board
-            {...boardFor(q, phase, given, correct, bonusPick)}
-            label="Drill board"
-            onTap={phase === 'ask' && TAP_KINDS.has(q.kind) ? answer : undefined}
-          />
+          <Board {...boardFor(q, phase, given, correct)} {...(phase === 'ask' ? boardInput(q, answer) : {})} label="Drill board" />
         </div>
       )}
 
       {q && phase !== 'ask' && (
         <Feedback q={q} given={given} correct={correct} ms={ms} />
-      )}
-
-      {q && phase === 'bonus' && q.kind === 'readMove' && q.bonus && (
-        <section className="bonus">
-          <h2>{q.bonus.prompt}</h2>
-          <div className="bonus__grid">
-            {q.bonus.options.map((o) => (
-              <button
-                key={o}
-                type="button"
-                className="bonus__opt"
-                data-state={bonusPick === null ? undefined : o === q.bonus!.answer ? 'right' : o === bonusPick ? 'wrong' : undefined}
-                disabled={bonusPick !== null}
-                onClick={() => setBonusPick(o)}
-              >
-                {o}
-              </button>
-            ))}
-          </div>
-        </section>
       )}
 
       {q && phase === 'ask' && <Input q={q} typed={typed} setTyped={setTyped} answer={answer} />}
@@ -207,7 +180,7 @@ function viewNote(q: Question): string {
   return `${side} · ${labels} · ${secs(q.targetMs)} target`;
 }
 
-function Prompt({ q, level }: { q: Question; level: LevelDef }) {
+function Prompt({ q }: { q: Question }) {
   switch (q.kind) {
     case 'nameSquare':
       return (
@@ -245,7 +218,7 @@ function Prompt({ q, level }: { q: Question; level: LevelDef }) {
             <p className="prompt__kicker">You play</p>
             <div className="prompt__big mono">{numberedSan(q.move)}</div>
           </div>
-          <p className="prompt__aside">Tap where it lands</p>
+          <p className="prompt__aside">Move the piece</p>
         </div>
       );
     case 'knightPath':
@@ -257,16 +230,18 @@ function Prompt({ q, level }: { q: Question; level: LevelDef }) {
               {q.from} → {q.to}
             </div>
           </div>
-          <p className="prompt__aside">{level.labels ? 'Name or tap' : 'Name'} a square in between</p>
+          <p className="prompt__aside">Move the knight to a square in between, or type it</p>
         </div>
       );
   }
 }
 
-function boardFor(q: Question, phase: Phase, given: string, correct: boolean, bonusPick: string | null): BoardProps {
+function boardFor(q: Question, phase: Phase, given: string, correct: boolean): BoardProps {
   const asking = phase === 'ask';
   const g = given.toLowerCase();
-  const wrongSq = !asking && !correct && isSquare(g) ? g : null;
+  // Moves come in as "f8b4"; the square that matters for marking is where it landed.
+  const landed = q.kind === 'readMove' || q.kind === 'knightPath' ? g.slice(-2) : g;
+  const wrongSq = !asking && !correct && isSquare(landed) ? landed : null;
   const hl: Partial<Record<Square, Highlight>> = {};
   const marks: Partial<Record<Square, string>> = {};
   const base = { orientation: q.orientation, showLabels: q.labels, highlights: hl, marks };
@@ -296,7 +271,6 @@ function boardFor(q: Question, phase: Phase, given: string, correct: boolean, bo
         hl[wrongSq] = 'warn';
         marks[wrongSq] = '×';
       }
-      if (bonusPick !== null && q.bonus?.answerSquare) hl[q.bonus.answerSquare] = 'attacker';
       return { ...base, fen: q.move.fenAfter };
     }
     case 'knightPath': {
@@ -304,7 +278,7 @@ function boardFor(q: Question, phase: Phase, given: string, correct: boolean, bo
       hl[q.to] = 'target';
       if (!asking) {
         for (const m of q.mids) marks[m] = '•';
-        if (correct && isSquare(g)) marks[g] = '✓';
+        if (correct && isSquare(landed)) marks[landed] = '✓';
         if (wrongSq && !q.mids.includes(wrongSq)) {
           hl[wrongSq] = 'warn';
           marks[wrongSq] = '×';
@@ -312,6 +286,23 @@ function boardFor(q: Question, phase: Phase, given: string, correct: boolean, bo
       }
       return { ...base, fen: placementFen({ [q.from]: q.orientation === 'white' ? 'N' : 'n' }) };
     }
+  }
+}
+
+/** How the board itself takes an answer while a question is open. */
+function boardInput(q: Question, answer: (g: string) => void): Partial<BoardProps> {
+  switch (q.kind) {
+    case 'tapSquare':
+      return { onTap: answer };
+    case 'readMove': {
+      // Any of your own pieces can be picked up, so picking the wrong one is a real mistake.
+      const mine = q.move.color === 'w';
+      return { onMove: (f, t) => answer(f + t), canDrag: (_s, p) => isWhitePiece(p) === mine };
+    }
+    case 'knightPath':
+      return { onMove: (f, t) => answer(f + t), canDrag: (s) => s === q.from };
+    default:
+      return {};
   }
 }
 
@@ -359,7 +350,7 @@ function Feedback({ q, given, correct, ms }: { q: Question; given: string; corre
       <div className="feedback feedback--right" role="status">
         <Check />
         <span>
-          <span className="mono">{q.kind === 'writeMove' ? q.move.san : given}</span> — correct · {secs(ms)}
+          <span className="mono">{q.kind === 'writeMove' || q.kind === 'readMove' ? q.move.san : given.length === 4 ? given.slice(2) : given}</span> — correct · {secs(ms)}
         </span>
       </div>
     );
@@ -383,19 +374,36 @@ function Feedback({ q, given, correct, ms }: { q: Question; given: string; corre
   }
   if (q.kind === 'knightPath') why = 'A knight jumps two squares one way and one square the other.';
 
-  const verb = q.kind === 'tapSquare' || q.kind === 'readMove' ? 'You tapped' : q.kind === 'writeMove' ? 'You wrote' : 'You said';
+  if (q.kind === 'readMove') {
+    const m = q.move;
+    const [gf, gt] = [g.slice(0, 2), g.slice(2, 4)];
+    if (gf === m.from) why = `Right piece, wrong square: ${numberedSan(m)} lands on ${m.to}.`;
+    else if (gt === m.to) why = `Right square, wrong piece: it's the ${PIECE_NAME[m.piece]} on ${m.from} that goes there.`;
+  }
+
+  const verb = q.kind === 'tapSquare' ? 'You tapped' : q.kind === 'writeMove' ? 'You wrote' : q.kind === 'readMove' || given.length === 4 ? 'You moved' : 'You said';
+  const shownGiven = q.kind === 'readMove' ? moveText(q.move.fenBefore, g) : given.length === 4 ? `${g.slice(0, 2)}→${g.slice(2)}` : given;
+  const shownWant = q.kind === 'readMove' ? moveText(q.move.fenBefore, q.move.from + q.move.to) : want;
   return (
     <div className="feedback feedback--wrong" role="status">
       <div className="feedback__line">
         <Cross />
         <span>
-          {verb} <span className="mono">{given || '—'}</span>. It's <span className="mono feedback__want">{want}</span>
+          {verb} <span className="mono">{shownGiven || '—'}</span>. It's <span className="mono feedback__want">{shownWant}</span>
         </span>
       </div>
       {why && <p className="feedback__why">{why}</p>}
       <p className="feedback__requeue">It'll come back in a few questions.</p>
     </div>
   );
+}
+
+/** "Bf8→b4" from a position and a from+to string. */
+function moveText(fen: string, fromTo: string): string {
+  const from = fromTo.slice(0, 2) as Square;
+  const p = isSquare(from) ? parsePlacement(fen).get(from) : undefined;
+  const letter = p && p.toLowerCase() !== 'p' ? p.toUpperCase() : '';
+  return `${letter}${from}→${fromTo.slice(2, 4)}`;
 }
 
 function Check() {

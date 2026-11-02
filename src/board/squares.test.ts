@@ -9,6 +9,7 @@ import {
   placementFen,
   screenPos,
   squareAt,
+  squareFromPoint,
   squaresInScreenOrder,
   type Orientation,
 } from './squares';
@@ -88,6 +89,23 @@ describe('square mapping', () => {
     expect(isSquare('i1')).toBe(false);
     expect(isSquare('a9')).toBe(false);
     expect(isSquare('E4')).toBe(false);
+  });
+});
+
+describe('squareFromPoint', () => {
+  it('maps pixels to squares in both orientations', () => {
+    expect(squareFromPoint(10, 10, 400, 'white')).toBe('a8');
+    expect(squareFromPoint(399, 399, 400, 'white')).toBe('h1');
+    expect(squareFromPoint(10, 10, 400, 'black')).toBe('h1');
+    // b6's slot on White's view is g3 on Black's.
+    expect(squareFromPoint(75, 125, 400, 'white')).toBe('b6');
+    expect(squareFromPoint(75, 125, 400, 'black')).toBe('g3');
+  });
+
+  it('returns null off the board', () => {
+    expect(squareFromPoint(-1, 10, 400, 'white')).toBeNull();
+    expect(squareFromPoint(10, 400, 400, 'white')).toBeNull();
+    expect(squareFromPoint(10, 10, 0, 'white')).toBeNull();
   });
 });
 

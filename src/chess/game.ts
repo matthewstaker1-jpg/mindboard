@@ -2,7 +2,7 @@
 // and moves lives here, out of React.
 
 import { Chess, type Move } from 'chess.js';
-import type { Piece, Square } from '../board/squares';
+import type { Square } from '../board/squares';
 import { OPENING_LINES, PROMOTION_FENS } from './openings';
 
 export type Color = 'w' | 'b';
@@ -92,43 +92,3 @@ export const PIECE_NAME: Record<string, string> = {
   n: 'knight',
   p: 'pawn',
 };
-
-/** "Nc3", "Ke1", or "d2 pawn" — how a piece on a square is written in the bonus question. */
-export function pieceLabel(piece: Piece | string, sq: Square): string {
-  const t = piece.toLowerCase();
-  return t === 'p' ? `${sq} pawn` : `${t.toUpperCase()}${sq}`;
-}
-
-/** Enemy pieces the piece standing on `from` attacks in this position. */
-export function attackedEnemies(fen: string, from: Square): { square: Square; piece: string }[] {
-  const chess = new Chess(fen);
-  const me = chess.get(from);
-  if (!me) return [];
-  const out: { square: Square; piece: string }[] = [];
-  for (const row of chess.board()) {
-    for (const cell of row) {
-      if (!cell || cell.color === me.color) continue;
-      if (chess.attackers(cell.square, me.color).includes(from)) {
-        out.push({ square: cell.square as Square, piece: cell.type });
-      }
-    }
-  }
-  return out;
-}
-
-/** Enemy pieces in this position that `from` does not attack. */
-export function unattackedEnemies(fen: string, from: Square): { square: Square; piece: string }[] {
-  const chess = new Chess(fen);
-  const me = chess.get(from);
-  if (!me) return [];
-  const hit = new Set(attackedEnemies(fen, from).map((a) => a.square));
-  const out: { square: Square; piece: string }[] = [];
-  for (const row of chess.board()) {
-    for (const cell of row) {
-      if (cell && cell.color !== me.color && !hit.has(cell.square as Square)) {
-        out.push({ square: cell.square as Square, piece: cell.type });
-      }
-    }
-  }
-  return out;
-}

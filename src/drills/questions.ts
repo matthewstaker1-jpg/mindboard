@@ -2,26 +2,11 @@
 // Pure: given a level, the stats table and an RNG, produce a question.
 
 import { ALL_SQUARES, type Orientation, type Square } from '../board/squares';
-import {
-  type BankMove,
-  PIECE_NAME,
-  attackedEnemies,
-  moveBank,
-  pieceLabel,
-  unattackedEnemies,
-} from '../chess/game';
+import { type BankMove, moveBank } from '../chess/game';
 import { knightMidpoints, knightTargets, sanMatches } from '../chess/notation';
 import type { DrillKind, LevelDef, MoveFilter } from '../levels/ladder';
 import type { StatsTable } from '../progress/stats';
 import { type Rng, pickAdaptive } from './queue';
-
-export interface Bonus {
-  prompt: string;
-  options: string[];
-  answer: string;
-  /** Where the right answer's piece stands, if it is a piece. */
-  answerSquare: Square | null;
-}
 
 interface Base {
   id: number;
@@ -37,7 +22,7 @@ export type Question = Base &
     | { kind: 'nameSquare'; square: Square }
     | { kind: 'tapSquare'; square: Square }
     | { kind: 'writeMove'; move: BankMove }
-    | { kind: 'readMove'; move: BankMove; bonus: Bonus | null }
+    | { kind: 'readMove'; move: BankMove }
     | { kind: 'knightPath'; from: Square; to: Square; mids: Square[] }
   );
 
@@ -53,15 +38,6 @@ let nextId = 1;
 
 function pickOne<T>(xs: readonly T[], rng: Rng): T {
   return xs[Math.floor(rng() * xs.length)]!;
-}
-
-function shuffle<T>(xs: T[], rng: Rng): T[] {
-  const a = [...xs];
-  for (let i = a.length - 1; i > 0; i--) {
-    const j = Math.floor(rng() * (i + 1));
-    [a[i], a[j]] = [a[j]!, a[i]!];
-  }
-  return a;
 }
 
 function sideFor(level: LevelDef, rng: Rng): Orientation {
@@ -88,25 +64,6 @@ function pickMove(ctx: GenContext, orientation: Orientation): BankMove {
   // Not every filter has moves for both colours in every bank; fall back to either colour.
   if (pool.length === 0) pool = moveBank().filter((m) => moveMatchesFilter(m, filter));
   return pickAdaptive(pool, (m) => m.to, ctx.stats, orientation, ctx.recent, ctx.rng);
-}
-
-/** "Which piece does your bishop attack now?" with exactly one right option. */
-export function makeBonus(move: BankMove, rng: Rng): Bonus | null {
-  if (move.isCastle) return null;
-  const name = PIECE_NAME[move.promotion ?? move.piece]!;
-  const hit = attackedEnemies(move.fenAfter, move.to);
-  const miss = shuffle(unattackedEnemies(move.fenAfter, move.to), rng);
-  const target = hit.length ? pickOne(hit, rng) : null;
-  const right = target ? pieceLabel(target.piece, target.square) : 'Nothing';
-  const wrong = miss.slice(0, 3).map((m) => pieceLabel(m.piece, m.square));
-  if (target && wrong.length < 3) wrong.push('Nothing');
-  if (wrong.length === 0) return null;
-  return {
-    prompt: `Bonus: what does your ${name} attack now?`,
-    options: shuffle([right, ...wrong.slice(0, 3)], rng),
-    answer: right,
-    answerSquare: target?.square ?? null,
-  };
 }
 
 function knightQuestion(ctx: GenContext, orientation: Orientation) {
@@ -138,7 +95,7 @@ export function generateQuestion(ctx: GenContext, kind?: DrillKind): Question {
     case 'readMove': {
       const move = pickMove(ctx, orientation);
       const o: Orientation = move.color === 'w' ? 'white' : 'black';
-      return { ...base, orientation: o, kind: 'readMove', move, bonus: makeBonus(move, rng), statSquare: move.to };
+      return { ...base, orientation: o, kind: 'readMove', move, statSquare: move.to };
     }
     case 'knightPath': {
       const kq = knightQuestion(ctx, orientation);
@@ -154,8 +111,8 @@ export function repeatQuestion(q: Question): Question {
 
 /**
  * Check an answer. Square drills take a square name ("f6"); write-move takes
- * the typed SAN; read-move takes the tapped landing square; knight paths take
- * the in-between square.
+ * the typed SAN; read-move takes the dragged move ("f8b4" or "f8-b4");
+ * knight paths take the in-between square.
  */
 export function checkAnswer(q: Question, given: string): boolean {
   const g = given.trim();
@@ -166,9 +123,10 @@ export function checkAnswer(q: Question, given: string): boolean {
     case 'writeMove':
       return sanMatches(g, q.move.san);
     case 'readMove':
-      return g.toLowerCase() === q.move.to;
+      return g.toLowerCase().replace('-', '') === q.move.from + q.move.to;
     case 'knightPath':
-      return q.mids.includes(g.toLowerCase() as Square);
+      // Typed ("c3") or moved ("b1c3"); either way, where the knight stops.
+      return q.mids.includes(g.toLowerCase().slice(-2) as Square);
   }
 }
 
@@ -181,7 +139,7 @@ export function expectedAnswer(q: Question): string {
     case 'writeMove':
       return q.move.san;
     case 'readMove':
-      return q.move.to;
+      return `${q.move.from}-${q.move.to}`;
     case 'knightPath':
       return q.mids.join(' or ');
   }

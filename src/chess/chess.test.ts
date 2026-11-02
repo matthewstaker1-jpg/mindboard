@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { OPENING_LINES } from './openings';
-import { attackedEnemies, moveBank, numberedSan, pieceLabel, replayLine } from './game';
+import { moveBank, numberedSan, replayLine } from './game';
 import { knightMidpoints, knightTargets, normaliseSanAnswer, sanMatches } from './notation';
 
 describe('opening bank', () => {
@@ -26,19 +26,6 @@ describe('opening bank', () => {
     expect(numberedSan(bb4!)).toBe('3…Bb4');
     const [e4] = replayLine(['e4']);
     expect(numberedSan(e4!)).toBe('1.e4');
-  });
-});
-
-describe('attacks', () => {
-  it('finds what a bishop attacks after the Nimzo pin', () => {
-    const moves = replayLine('d4 Nf6 c4 e6 Nc3 Bb4'.split(' '));
-    const hit = attackedEnemies(moves.at(-1)!.fenAfter, 'b4').map((a) => pieceLabel(a.piece, a.square));
-    expect(hit).toEqual(['Nc3']);
-  });
-
-  it('labels pawns by square', () => {
-    expect(pieceLabel('p', 'd2')).toBe('d2 pawn');
-    expect(pieceLabel('K', 'e1')).toBe('Ke1');
   });
 });
 

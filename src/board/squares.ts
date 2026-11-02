@@ -119,3 +119,13 @@ export function placementFen(pieces: Partial<Record<Square, Piece>>): string {
   }
   return rows.join('/');
 }
+
+/**
+ * The square under a point, given in pixels from the board's top-left corner
+ * on a board `size` pixels wide. Null when the point is off the board.
+ */
+export function squareFromPoint(x: number, y: number, size: number, orientation: Orientation): Square | null {
+  if (!(size > 0) || x < 0 || y < 0 || x >= size || y >= size) return null;
+  const cell = size / 8;
+  return squareAt(Math.floor(y / cell), Math.floor(x / cell), orientation);
+}

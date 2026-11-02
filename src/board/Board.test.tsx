@@ -1,3 +1,4 @@
+import type React from 'react';
 import { describe, expect, it, vi } from 'vitest';
 import { fireEvent, render } from '@testing-library/react';
 import { Board } from './Board';
@@ -97,5 +98,57 @@ describe('Board', () => {
     expect(getByRole('button', { name: 'e1, white king' })).toBeTruthy();
     expect(getByRole('button', { name: 'c4, hidden piece' })).toBeTruthy();
     expect(getByRole('button', { name: 'f3' })).toBeTruthy();
+  });
+
+  describe('moving pieces', () => {
+    // jsdom has no layout, so give the board a 400px box: squares are 50px.
+    function setup(props: Partial<React.ComponentProps<typeof Board>> = {}) {
+      const onMove = vi.fn();
+      const utils = render(<Board fen={ITALIAN} onMove={onMove} {...props} />);
+      const board = utils.container.querySelector<HTMLElement>('.board')!;
+      board.getBoundingClientRect = () => ({ left: 0, top: 0, width: 400, height: 400, right: 400, bottom: 400, x: 0, y: 0, toJSON() {} });
+      board.setPointerCapture = () => {};
+      // Centre of a square in White's view.
+      const at = (sq: string) => ({ clientX: (sq.charCodeAt(0) - 97) * 50 + 25, clientY: (8 - Number(sq[1])) * 50 + 25, button: 0, pointerId: 1 });
+      return { ...utils, board, onMove, at };
+    }
+
+    it('reports a drag from one square to another', () => {
+      const { board, onMove, at } = setup();
+      fireEvent.pointerDown(board, at('f3'));
+      fireEvent.pointerMove(board, at('e5'));
+      fireEvent.pointerMove(board, at('d4'));
+      fireEvent.pointerUp(board, at('d4'));
+      expect(onMove).toHaveBeenCalledWith('f3', 'd4');
+    });
+
+    it('supports click the piece, then click the square', () => {
+      const { board, onMove, at, container } = setup();
+      fireEvent.pointerDown(board, at('c4'));
+      fireEvent.pointerUp(board, at('c4'));
+      expect(cell(container, 'c4').hasAttribute('data-selected')).toBe(true);
+      fireEvent.pointerDown(board, at('f7'));
+      expect(onMove).toHaveBeenCalledWith('c4', 'f7');
+    });
+
+    it('only lets you pick up pieces canDrag allows', () => {
+      const { board, onMove, at } = setup({ canDrag: (_s, p) => isWhitePiece(p) });
+      fireEvent.pointerDown(board, at('c6'));
+      fireEvent.pointerMove(board, at('d4'));
+      fireEvent.pointerUp(board, at('d4'));
+      expect(onMove).not.toHaveBeenCalled();
+    });
+
+    it('ignores hidden pieces and drops back on the same square', () => {
+      const { board, onMove, at } = setup({ hidden: { f3: 'ghost' } });
+      fireEvent.pointerDown(board, at('f3'));
+      fireEvent.pointerMove(board, at('d4'));
+      fireEvent.pointerUp(board, at('d4'));
+      fireEvent.pointerDown(board, at('e4'));
+      fireEvent.pointerMove(board, at('e5'));
+      fireEvent.pointerMove(board, at('e4'));
+      fireEvent.pointerUp(board, at('e4'));
+      expect(onMove).not.toHaveBeenCalled();
+    });
   });
 });

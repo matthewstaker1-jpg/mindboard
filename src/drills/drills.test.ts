@@ -3,10 +3,9 @@ import { ALL_SQUARES, type Square } from '../board/squares';
 import { LADDER, levelById, passes } from '../levels/ladder';
 import { emptyStats, recordAnswer, weakestSquares } from '../progress/stats';
 import { knightTargets } from '../chess/notation';
-import { checkAnswer, expectedAnswer, generateQuestion, makeBonus, moveMatchesFilter } from './questions';
+import { checkAnswer, expectedAnswer, generateQuestion, moveMatchesFilter } from './questions';
 import { pickAdaptive, retryGap } from './queue';
 import { isFinished, newSession, nextQuestion, submitAnswer, summarise } from './session';
-import { moveBank } from '../chess/game';
 
 /** Small deterministic RNG (mulberry32). */
 function seeded(seed: number) {
@@ -97,17 +96,6 @@ describe('questions', () => {
     const rng = seeded(6);
     const q = generateQuestion({ level: levelById('tap-black')!, stats: emptyStats(), recent: [], rng });
     expect(checkAnswer(q, q.kind === 'tapSquare' && q.square === 'a1' ? 'a2' : 'a1')).toBe(false);
-  });
-
-  it('builds bonus questions with exactly one right option', () => {
-    const rng = seeded(7);
-    for (const m of moveBank().filter((x) => !x.isCastle).slice(0, 120)) {
-      const b = makeBonus(m, rng);
-      if (!b) continue;
-      expect(b.options).toContain(b.answer);
-      expect(new Set(b.options).size).toBe(b.options.length);
-      expect(b.options.length).toBeGreaterThanOrEqual(2);
-    }
   });
 });
 

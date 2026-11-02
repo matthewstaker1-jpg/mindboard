@@ -4,9 +4,9 @@
   container-type: inline-size;
   display: grid;
   grid-template-columns: repeat(8, minmax(0, 1fr));
+  position: relative;
   width: 100%;
-  border-radius: 12px;
-  overflow: hidden;
+  border-radius: var(--board-radius, 12px);
   box-shadow: 0 24px 60px rgba(0, 0, 0, 0.55);
   user-select: none;
   -webkit-tap-highlight-color: transparent;
@@ -42,7 +42,35 @@
 .board__sq[data-hl='attacker'] { --on-light: var(--hl-attacker-light); --on-dark: var(--hl-attacker-dark); }
 .board[data-tone='dark'] .board__sq[data-hl='from'] { --on-light: var(--void-from-light); --on-dark: var(--void-from-dark); }
 
+/* Rounded corners on the corner squares, not overflow:hidden on the board,
+   so a dragged piece can leave the board's edge. */
+.board__sq:nth-child(1) { border-top-left-radius: var(--board-radius, 12px); }
+.board__sq:nth-child(8) { border-top-right-radius: var(--board-radius, 12px); }
+.board__sq:nth-child(57) { border-bottom-left-radius: var(--board-radius, 12px); }
+.board__sq:nth-child(64) { border-bottom-right-radius: var(--board-radius, 12px); }
+
 button.board__sq { cursor: pointer; }
+
+/* Moving pieces */
+.board[data-movable] { touch-action: none; }
+.board[data-movable] .board__sq[data-can-drag] { cursor: grab; }
+.board[data-dragging],
+.board[data-dragging] .board__sq { cursor: grabbing !important; }
+.board__sq[data-selected] { box-shadow: inset 0 0 0 3px var(--lime); }
+.board__sq[data-over] { box-shadow: inset 0 0 0 3px rgba(251, 250, 246, 0.85); }
+.board__sq[data-lifted] > .board__piece { opacity: 0.3; }
+.board__float {
+  position: absolute;
+  z-index: 10;
+  width: 12.5%;
+  aspect-ratio: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transform: translate(-50%, -50%) scale(1.12);
+  pointer-events: none;
+  filter: drop-shadow(0 6px 10px rgba(0, 0, 0, 0.45));
+}
 button.board__sq:active { filter: brightness(1.12); }
 button.board__sq:focus-visible {
   outline: 3px solid var(--lime);
