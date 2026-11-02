@@ -8,6 +8,7 @@ import { FollowMoves } from './screens/FollowMoves';
 import { Study } from './screens/Study';
 import { Today } from './screens/Today';
 import { VoiceLab } from './screens/VoiceLab';
+import { Placement } from './screens/Placement';
 import { levelById } from './levels/ladder';
 import { ALL_LEVELS } from './levels/all';
 import { isUnlocked } from './progress/progress';
@@ -33,6 +34,7 @@ export function App() {
   if (route === '/follow') return <FollowMoves />;
   if (route.startsWith('/study')) return <Study key={route} />;
   if (route === '/voice-lab') return <VoiceLab />;
+  if (route === '/placement') return <Placement />;
   const drill = route.match(/^\/drill\/([\w-]+)$/);
   const level = drill ? levelById(drill[1]!) : undefined;
   // Keying by route gives each level a fresh drill.

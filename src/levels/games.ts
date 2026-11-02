@@ -38,10 +38,11 @@ export interface GameLevel {
    * pause broke the flow of play.
    */
   recallEvery: [number, number] | null;
-  pass: { result: 'not-loss'; maxSlips: number; gamesInARow: number };
+  /** Passed once `need` of your last `of` games count (not lost, at most `maxSlips` slips). */
+  pass: { result: 'not-loss'; maxSlips: number; need: number; of: number };
 }
 
-const PASS = { result: 'not-loss', maxSlips: 3, gamesInARow: 3 } as const;
+const PASS = { result: 'not-loss', maxSlips: 3, need: 2, of: 3 } as const;
 
 export const GAME_LEVELS: GameLevel[] = [
   {

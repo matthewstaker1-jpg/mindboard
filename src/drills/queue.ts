@@ -9,6 +9,8 @@ export type Rng = () => number;
 
 export const RETRY_MIN_GAP = 3;
 export const RETRY_MAX_GAP = 5;
+/** Squares due for review (missed on an earlier day) are this many times likelier to come up. */
+export const DUE_BOOST = 4;
 
 export function squareWeight(table: StatsTable, orientation: Orientation, sq: Square): number {
   const st = table[orientation][sq];
@@ -40,10 +42,15 @@ export function pickAdaptive<T>(
   orientation: Orientation,
   recent: Square[],
   rng: Rng,
+  due?: ReadonlySet<string>,
 ): T {
   const avoid = new Set(recent.slice(-4));
   const pool = candidates.filter((c) => !avoid.has(squareOf(c)));
-  return weightedPick(pool.length ? pool : candidates, (c) => squareWeight(table, orientation, squareOf(c)), rng);
+  const weight = (c: T) => {
+    const sq = squareOf(c);
+    return squareWeight(table, orientation, sq) * (due?.has(`${orientation}:${sq}`) ? DUE_BOOST : 1);
+  };
+  return weightedPick(pool.length ? pool : candidates, weight, rng);
 }
 
 /** How many questions from now a missed question comes back. */

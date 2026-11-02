@@ -35,14 +35,19 @@ function recentSquares(s: SessionState): Square[] {
   return s.answers.slice(-4).map((a) => a.question.statSquare);
 }
 
-export function nextQuestion(s: SessionState, stats: StatsTable, rng: Rng): { session: SessionState; question: Question } {
+export function nextQuestion(
+  s: SessionState,
+  stats: StatsTable,
+  rng: Rng,
+  due?: ReadonlySet<string>,
+): { session: SessionState; question: Question } {
   const asked = s.answers.length;
   const dueIdx = s.retries.findIndex((r) => r.due <= asked);
   if (dueIdx >= 0) {
     const question = repeatQuestion(s.retries[dueIdx]!.question);
     return { session: { ...s, retries: s.retries.filter((_, i) => i !== dueIdx) }, question };
   }
-  return { session: s, question: generateQuestion({ level: s.level, stats, recent: recentSquares(s), rng }) };
+  return { session: s, question: generateQuestion({ level: s.level, stats, recent: recentSquares(s), rng, due }) };
 }
 
 export function submitAnswer(

@@ -142,3 +142,22 @@ describe('ladder', () => {
     expect(LADDER.map((l) => l.stage)).toEqual([...LADDER.map((l) => l.stage)].sort());
   });
 });
+
+describe('placement', async () => {
+  const { placementSkips } = await import('../levels/placement');
+  it('skips nothing on a weak squares score', () => {
+    expect(placementSkips({ correct: 10, total: 16, medianMs: 1500 }, null)).toEqual([]);
+  });
+  it('skips the board levels but not the clock when slow', () => {
+    const s = placementSkips({ correct: 15, total: 16, medianMs: 2600 }, { correct: 12, total: 12, medianMs: 3000 });
+    expect(s).toContain('tap-nolabels');
+    expect(s).not.toContain('timed');
+    expect(s).not.toContain('read-move');
+  });
+  it('skips all of Stages 1–2 when both parts go well', () => {
+    const s = placementSkips({ correct: 16, total: 16, medianMs: 1500 }, { correct: 10, total: 12, medianMs: 3000 });
+    expect(s).toContain('timed');
+    expect(s).toContain('mixed-review');
+    expect(s).toHaveLength(13);
+  });
+});

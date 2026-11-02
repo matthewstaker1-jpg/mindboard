@@ -32,6 +32,8 @@ export interface GenContext {
   /** Stat squares of the most recent questions, oldest first. */
   recent: Square[];
   rng: Rng;
+  /** Squares due for review today ("white:e4"); they come up more often. */
+  due?: ReadonlySet<string>;
 }
 
 let nextId = 1;
@@ -63,11 +65,11 @@ function pickMove(ctx: GenContext, orientation: Orientation): BankMove {
   let pool = moveBank().filter((m) => m.color === color && moveMatchesFilter(m, filter));
   // Not every filter has moves for both colours in every bank; fall back to either colour.
   if (pool.length === 0) pool = moveBank().filter((m) => moveMatchesFilter(m, filter));
-  return pickAdaptive(pool, (m) => m.to, ctx.stats, orientation, ctx.recent, ctx.rng);
+  return pickAdaptive(pool, (m) => m.to, ctx.stats, orientation, ctx.recent, ctx.rng, ctx.due);
 }
 
 function knightQuestion(ctx: GenContext, orientation: Orientation) {
-  const to = pickAdaptive([...ALL_SQUARES], (s) => s, ctx.stats, orientation, ctx.recent, ctx.rng);
+  const to = pickAdaptive([...ALL_SQUARES], (s) => s, ctx.stats, orientation, ctx.recent, ctx.rng, ctx.due);
   // Starting squares exactly two knight hops away (not one, not the same square).
   const oneHop = new Set(knightTargets(to));
   const starts = ALL_SQUARES.filter((s) => s !== to && !oneHop.has(s) && knightMidpoints(s, to).length > 0);
@@ -84,7 +86,7 @@ export function generateQuestion(ctx: GenContext, kind?: DrillKind): Question {
   switch (k) {
     case 'nameSquare':
     case 'tapSquare': {
-      const square = pickAdaptive([...ALL_SQUARES], (s) => s, ctx.stats, orientation, ctx.recent, rng);
+      const square = pickAdaptive([...ALL_SQUARES], (s) => s, ctx.stats, orientation, ctx.recent, rng, ctx.due);
       return { ...base, kind: k, square, statSquare: square };
     }
     case 'writeMove': {

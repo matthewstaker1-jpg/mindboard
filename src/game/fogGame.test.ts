@@ -215,20 +215,22 @@ describe('peeks, resigning and passing', () => {
     expect(gamePasses(s)).toBe(false);
   });
 
-  it('passes a level after three passing games in a row', () => {
+  it('passes a level once two of the last three games count', () => {
     const fog2 = level('fog-2');
     let p = emptyProgress();
     const now = new Date('2026-11-02T12:00:00');
     p = withGame(p, fog2, 'win', true, now);
-    p = withGame(p, fog2, 'draw', true, now);
+    expect(isPassed(p, 'fog-2')).toBe(false);
     p = withGame(p, fog2, 'loss', false, now);
-    expect(p.levels['fog-2']!.passRun).toBe(0);
-    p = withGame(p, fog2, 'win', true, now);
-    p = withGame(p, fog2, 'win', true, now);
+    p = withGame(p, fog2, 'loss', false, now);
+    // Only one of the last three counted.
+    expect(isPassed(p, 'fog-2')).toBe(false);
+    p = withGame(p, fog2, 'draw', true, now);
     expect(isPassed(p, 'fog-2')).toBe(false);
     p = withGame(p, fog2, 'win', true, now);
     expect(isPassed(p, 'fog-2')).toBe(true);
-    expect(p.levels['fog-2']!.games).toEqual({ win: 4, draw: 1, loss: 1 });
+    expect(p.levels['fog-2']!.recent).toEqual([false, true, true]);
+    expect(p.levels['fog-2']!.games).toEqual({ win: 2, draw: 1, loss: 2 });
   });
 
   it('keeps the position consistent', () => {

@@ -48,7 +48,6 @@ function cleanLevel(v: unknown): LevelRecord | null {
     ? { correct: v.best.correct, total: v.best.total, medianMs: typeof v.best.medianMs === 'number' ? v.best.medianMs : null }
     : null;
   const rec: LevelRecord = { attempts: Math.max(0, num(v.attempts, 0)), passed: bool(v.passed, false), best };
-  if (typeof v.passRun === 'number') rec.passRun = Math.max(0, v.passRun);
   if (Array.isArray(v.recent)) rec.recent = v.recent.filter((x): x is boolean => typeof x === 'boolean').slice(-3);
   if (isObj(v.games)) rec.games = { win: num(v.games.win, 0), draw: num(v.games.draw, 0), loss: num(v.games.loss, 0) };
   return rec;

@@ -251,3 +251,11 @@
   font-size: 11px;
   text-align: center;
 }
+.hero__skip {
+  display: block;
+  margin-top: 12px;
+  text-align: center;
+  font-size: 13px;
+  color: var(--muted);
+  text-underline-offset: 3px;
+}

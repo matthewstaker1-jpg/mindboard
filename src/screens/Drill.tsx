@@ -7,7 +7,7 @@ import { type Question, expectedAnswer } from '../drills/questions';
 import { type SessionState, isFinished, newSession, nextQuestion, submitAnswer, summarise } from '../drills/session';
 import { ALL_LEVELS, levelHref } from '../levels/all';
 import { type LevelDef, type SessionSummary, levelNumber, passes } from '../levels/ladder';
-import { withAnswer, withSession } from '../progress/progress';
+import { dueSquares, withAnswer, withSession } from '../progress/progress';
 import { useProgress } from '../progress/store';
 import { NotationKeyboard, SquareKeypad, useKeys } from '../ui/keypads';
 import { CoordsToggle, useCoordsPref } from '../ui/prefs';
@@ -22,7 +22,7 @@ const secs = (ms: number) => `${(ms / 1000).toFixed(1)}s`;
  * A drill session. With `onDone` it's one step of Today: practice only, so
  * no level record is written, and the results screen offers Continue.
  */
-export function Drill({ level, onDone }: { level: LevelDef; onDone?: () => void }) {
+export function Drill({ level, onDone, onFinish }: { level: LevelDef; onDone?: () => void; onFinish?: (summary: SessionSummary) => void }) {
   const { progress, update } = useProgress();
   const [coordsOn] = useCoordsPref();
   const [session, setSession] = useState<SessionState>(() => newSession(level));
@@ -37,7 +37,7 @@ export function Drill({ level, onDone }: { level: LevelDef; onDone?: () => void 
 
   const ask = (s: SessionState) => {
     if (!progress) return;
-    const n = nextQuestion(s, progress.stats, Math.random);
+    const n = nextQuestion(s, progress.stats, Math.random, dueSquares(progress, new Date()));
     setSession(n.session);
     setQ(n.question);
     setPhase('ask');
@@ -68,6 +68,7 @@ export function Drill({ level, onDone }: { level: LevelDef; onDone?: () => void 
     if (isFinished(session)) {
       const sum = summarise(session);
       if (!onDone) update((p) => withSession(p, level, sum, new Date()));
+      onFinish?.(sum);
       setSummary(sum);
       setPhase('done');
       return;
@@ -118,7 +119,7 @@ export function Drill({ level, onDone }: { level: LevelDef; onDone?: () => void 
         <div className="drill__progress">
           <div className="drill__meta">
             <span>
-              STAGE {level.stage} · LEVEL {n}
+              {n ? `STAGE ${level.stage} · LEVEL ${n}` : level.title.toUpperCase()}
             </span>
             <span>
               {Math.min(session.answers.length + (phase === 'ask' ? 1 : 0), level.questions)} / {level.questions}

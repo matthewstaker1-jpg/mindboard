@@ -11,8 +11,6 @@ export interface LevelRecord {
   attempts: number;
   passed: boolean;
   best: SessionSummary | null;
-  /** Game levels: passing games in a row right now, and results so far. */
-  passRun?: number;
   /** Game levels: whether each of the most recent games counted, newest last. */
   recent?: boolean[];
   games?: { win: number; draw: number; loss: number };
@@ -152,8 +150,46 @@ export function withAnswer(
   correct: boolean,
   ms: number,
   run: number,
+  now: Date = new Date(),
 ): Progress {
-  return { ...p, stats: recordAnswer(p.stats, orientation, sq, correct, ms), bestRun: Math.max(p.bestRun, run) };
+  return {
+    ...p,
+    stats: recordAnswer(p.stats, orientation, sq, correct, ms),
+    bestRun: Math.max(p.bestRun, run),
+    review: reviewAfter(p.review, `${orientation}:${sq}`, correct, now),
+  };
+}
+
+/** Longest gap between reviews; a square that survives it is considered learnt. */
+export const REVIEW_MAX_DAYS = 30;
+
+function addDays(key: string, n: number): string {
+  const [y, m, d] = key.split('-').map(Number);
+  return dayKey(new Date(y!, m! - 1, d! + n));
+}
+
+/**
+ * Spaced repetition: a miss schedules the square for tomorrow; a right answer
+ * on a due square pushes it further out (1 → 3 → 7 → 16 → 30 days), then
+ * retires it. Right answers on squares that aren't due change nothing.
+ */
+export function reviewAfter(review: Progress['review'], key: string, correct: boolean, now: Date): Progress['review'] {
+  const today = dayKey(now);
+  const card = review[key];
+  if (!correct) return { ...review, [key]: { due: addDays(today, 1), interval: 1 } };
+  if (!card || card.due > today) return review;
+  const interval = Math.round(card.interval * 2.3) || 1;
+  if (interval > REVIEW_MAX_DAYS) {
+    const { [key]: _done, ...rest } = review;
+    return rest;
+  }
+  return { ...review, [key]: { due: addDays(today, interval), interval } };
+}
+
+/** Squares due for review today, as "white:e4" keys. */
+export function dueSquares(p: Progress, now: Date): Set<string> {
+  const today = dayKey(now);
+  return new Set(Object.entries(p.review).filter(([, c]) => c.due <= today).map(([k]) => k));
 }
 
 /** A slip in a game: counted against the square where you lost track, not as a naming miss. */
@@ -201,6 +237,13 @@ export function engineOffset(p: Progress, levelId: string): number {
   return p.engineOffsets[levelId] ?? 0;
 }
 
+/** Mark levels as passed after a placement test (records keep their attempts and best). */
+export function withSkipped(p: Progress, levelIds: string[]): Progress {
+  const levels = { ...p.levels };
+  for (const id of levelIds) levels[id] = { ...(levels[id] ?? { attempts: 0, best: null }), passed: true };
+  return { ...p, levels };
+}
+
 /** Nudge this level's engine towards an even score: up after a win, down after a loss. */
 export function withEngineResult(p: Progress, levelId: string, outcome: 'win' | 'draw' | 'loss'): Progress {
   const step = outcome === 'win' ? ENGINE_STEP : outcome === 'loss' ? -ENGINE_STEP : 0;
@@ -235,10 +278,12 @@ export function withTodayDone(p: Progress, now: Date): Progress {
   return { ...p, todayDone: dayKey(now), streak: withDay(p, now) };
 }
 
-/**
- * Apply a finished game. A game level is passed after `gamesInARow`
- * passing games in a row (BUILD_PLAN: "pass three games in a row").
- */
+/** How many of the most recent games counted, out of the window the level looks at. */
+export function recentPasses(rec: LevelRecord | undefined, level: GameLevel): number {
+  return (rec?.recent ?? []).slice(-level.pass.of).filter(Boolean).length;
+}
+
+/** Apply a finished game. A game level is passed once `need` of your last `of` games count. */
 export function withGame(
   p: Progress,
   level: GameLevel,
@@ -249,13 +294,13 @@ export function withGame(
   const prev = p.levels[level.id] ?? { attempts: 0, passed: false, best: null };
   const games = { win: 0, draw: 0, loss: 0, ...prev.games };
   games[outcome]++;
-  const passRun = passedGame ? (prev.passRun ?? 0) + 1 : 0;
+  const recent = [...(prev.recent ?? []), passedGame].slice(-level.pass.of);
   const record: LevelRecord = {
     ...prev,
     attempts: prev.attempts + 1,
     games,
-    passRun,
-    passed: prev.passed || passRun >= level.pass.gamesInARow,
+    recent,
+    passed: prev.passed || recent.filter(Boolean).length >= level.pass.need,
   };
   return withEngineResult({ ...p, levels: { ...p.levels, [level.id]: record }, streak: withDay(p, now) }, level.id, outcome);
 }

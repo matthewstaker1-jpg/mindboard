@@ -4,7 +4,7 @@ import type { StudyPosition } from '../../chess/positions';
 import { type GameState, gamePasses } from '../../game/fogGame';
 import { ALL_LEVELS, STAGE_NAMES, levelHref } from '../../levels/all';
 import type { GameLevel } from '../../levels/games';
-import type { LevelRecord } from '../../progress/progress';
+import { type LevelRecord, recentPasses } from '../../progress/progress';
 import { GameReview } from '../GameReview';
 import { STUDY_MAX_SLIPS } from './useFogGame';
 
@@ -46,9 +46,9 @@ export function GameResult({ game, level, scenario, record, studyPassed, evals, 
         {!scenario && (
           <div>
             <span className="mono">
-              {record?.passRun ?? 0}/{level.pass.gamesInARow}
+              {recentPasses(record, level)}/{level.pass.need}
             </span>
-            <span>passing games in a row</span>
+            <span>of your last {level.pass.of} games counted</span>
           </div>
         )}
       </div>

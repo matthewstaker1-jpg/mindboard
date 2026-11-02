@@ -71,3 +71,22 @@ describe('progress', () => {
     expect(median([4, 1, 2, 3])).toBe(2.5);
   });
 });
+
+describe('spaced repetition', async () => {
+  const { reviewAfter, dueSquares, emptyProgress: fresh } = await import('./progress');
+  it('brings a missed square back tomorrow, then spaces it out, then retires it', () => {
+    let r = reviewAfter({}, 'white:f6', false, day('2026-11-02'));
+    expect(r['white:f6']).toEqual({ due: '2026-11-03', interval: 1 });
+    // Right again the same day: not due yet, nothing changes.
+    expect(reviewAfter(r, 'white:f6', true, day('2026-11-02'))).toBe(r);
+    r = reviewAfter(r, 'white:f6', true, day('2026-11-03'));
+    expect(r['white:f6']!.interval).toBeGreaterThan(1);
+    expect(dueSquares({ ...fresh(), review: r }, day('2026-11-04')).has('white:f6')).toBe(false);
+    for (let i = 0; i < 6; i++) {
+      const due = r['white:f6']?.due;
+      if (!due) break;
+      r = reviewAfter(r, 'white:f6', true, day(due));
+    }
+    expect(r['white:f6']).toBeUndefined();
+  });
+});
