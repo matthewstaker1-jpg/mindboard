@@ -57,7 +57,7 @@ Chess logic stays out of React components; screens call pure functions and the `
 
 A game **counts** if you don't lose and make at most 3 slips. Recall checks are an opt-in setting; when on, missing two in a row drops the fog back a level for that game (and that game doesn't count).
 
-**Placement test** (`levels/placement.ts`): 16 square questions (both sides, no labels). 85% skips the six board levels; also a median ≤ 2 s skips Against the clock. Only then come 12 move questions: 80% skips all of Stage 2.
+**Placement test** (`levels/placement.ts`): 16 square questions (both sides, no labels). 85% skips the six board levels; also a median ≤ 5 s skips Against the clock. Only then come 12 move questions: 80% skips all of Stage 2.
 
 ## Engine strength (measured, not guessed)
 `scripts/calibrate.ts` plays 200-game matches in Node with the same Stockfish build. It chains down from Stockfish's own `UCI_Elo 1320` (its limiter's floor) through the app's low settings. Results in `docs/engine-calibration.json`:

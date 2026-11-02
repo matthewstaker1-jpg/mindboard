@@ -26,8 +26,9 @@ describe('moving on after a near miss', () => {
 
   it('ignores speed on the clock level', () => {
     const timed = levelById('timed')!;
-    expect(passes(timed, s(19, 20, 2600))).toBe(false);
-    expect(canMoveOn(timed, s(19, 20, 2600))).toBe(true);
+    expect(passes(timed, s(19, 20, 4800))).toBe(true);
+    expect(passes(timed, s(19, 20, 5600))).toBe(false);
+    expect(canMoveOn(timed, s(19, 20, 5600))).toBe(true);
   });
 });
 

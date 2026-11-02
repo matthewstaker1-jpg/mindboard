@@ -120,8 +120,8 @@ describe('session and passing', () => {
     expect(passes(name, { correct: 17, total: 20, medianMs: 1000 })).toBe(false);
     expect(passes(name, { correct: 10, total: 10, medianMs: 1000 })).toBe(false);
     const timed = levelById('timed')!;
-    expect(passes(timed, { correct: 20, total: 20, medianMs: 2100 })).toBe(false);
-    expect(passes(timed, { correct: 20, total: 20, medianMs: 1900 })).toBe(true);
+    expect(passes(timed, { correct: 20, total: 20, medianMs: 5100 })).toBe(false);
+    expect(passes(timed, { correct: 20, total: 20, medianMs: 4900 })).toBe(true);
   });
 
   it('resets the in-a-row run on a miss', () => {
@@ -149,7 +149,7 @@ describe('placement', async () => {
     expect(placementSkips({ correct: 10, total: 16, medianMs: 1500 }, null)).toEqual([]);
   });
   it('skips the board levels but not the clock when slow', () => {
-    const s = placementSkips({ correct: 15, total: 16, medianMs: 2600 }, { correct: 12, total: 12, medianMs: 3000 });
+    const s = placementSkips({ correct: 15, total: 16, medianMs: 5600 }, { correct: 12, total: 12, medianMs: 3000 });
     expect(s).toContain('tap-nolabels');
     expect(s).not.toContain('timed');
     expect(s).not.toContain('read-move');

@@ -34,7 +34,7 @@ export const PLACEMENT_MOVES: LevelDef = {
 const SQUARE_LEVELS = ['name-white', 'tap-white', 'name-black', 'tap-black', 'name-nolabels', 'tap-nolabels'];
 const MOVE_LEVELS = ['write-quiet', 'write-captures', 'read-move', 'write-special', 'knight-paths', 'mixed-review'];
 /** Fast enough on the squares part to skip "Against the clock" too. */
-export const PLACEMENT_FAST_MS = 2000;
+export const PLACEMENT_FAST_MS = 5000;
 
 /** Which ladder levels a placement result lets you skip. */
 export function placementSkips(squares: SessionSummary, moves: SessionSummary | null): string[] {
