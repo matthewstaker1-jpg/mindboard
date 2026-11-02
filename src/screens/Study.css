@@ -1,0 +1,35 @@
+.study-setup { gap: 16px; }
+.study-setup h1 { margin: 8px 0 0; font-size: 28px; font-weight: 700; line-height: 1.15; }
+.study-setup > p { margin: 0; line-height: 1.5; }
+.study-setup__record { font-size: 13px; }
+.study-setup__row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 14px;
+  border-radius: 14px;
+  background: var(--surface);
+  border: 1px solid var(--line);
+  font-weight: 600;
+}
+
+.today-bar {
+  position: sticky;
+  top: 0;
+  z-index: 20;
+  display: flex;
+  justify-content: center;
+  gap: 8px;
+  padding: 8px 0;
+  background: var(--ground);
+  font: 600 11px var(--font-mono);
+  letter-spacing: 0.12em;
+  color: var(--muted);
+}
+.today-bar span[data-on] { color: var(--lime); }
+.today-bar span[data-done] { color: var(--text); }
+
+.today-done { gap: 14px; justify-content: center; text-align: center; }
+.today-done h1 { margin: 0; font-size: 40px; color: var(--lime); }
+.today-done p { margin: 0; }

@@ -190,3 +190,22 @@ export function easierLevel(id: string): GameLevel | null {
   const i = GAME_LEVELS.findIndex((l) => l.id === id);
   return i > 0 ? GAME_LEVELS[i - 1]! : null;
 }
+
+/** The settings a study position is played under: how much fades once you're ready. */
+export function studyLevel(hide: 'own-all' | 'all'): GameLevel {
+  return {
+    id: `study-${hide}`,
+    mode: 'game',
+    stage: 3,
+    title: hide === 'all' ? 'Study · everything hidden' : 'Study · your pieces hidden',
+    blurb: 'Study a position, then play on with it hidden.',
+    engineElo: 1000,
+    side: 'white',
+    hide: hide === 'all' ? { kind: 'all' } : { kind: 'own-all' },
+    view: hide === 'all' ? 'dark' : 'board',
+    showMoveList: true,
+    peekBudgetMs: 20_000,
+    recallEvery: null,
+    pass: PASS,
+  };
+}

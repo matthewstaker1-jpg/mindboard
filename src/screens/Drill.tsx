@@ -18,7 +18,11 @@ type Phase = 'ask' | 'feedback' | 'done';
 const secs = (ms: number) => `${(ms / 1000).toFixed(1)}s`;
 
 
-export function Drill({ level }: { level: LevelDef }) {
+/**
+ * A drill session. With `onDone` it's one step of Today: practice only, so
+ * no level record is written, and the results screen offers Continue.
+ */
+export function Drill({ level, onDone }: { level: LevelDef; onDone?: () => void }) {
   const { progress, update } = useProgress();
   const [coordsOn] = useCoordsPref();
   const [session, setSession] = useState<SessionState>(() => newSession(level));
@@ -63,7 +67,7 @@ export function Drill({ level }: { level: LevelDef }) {
   const next = () => {
     if (isFinished(session)) {
       const sum = summarise(session);
-      update((p) => withSession(p, level, sum, new Date()));
+      if (!onDone) update((p) => withSession(p, level, sum, new Date()));
       setSummary(sum);
       setPhase('done');
       return;
@@ -95,7 +99,7 @@ export function Drill({ level }: { level: LevelDef }) {
   const n = levelNumber(level.id);
 
   if (phase === 'done' && summary) {
-    return <Results level={level} summary={summary} bestRun={Math.max(...runs(session))} onRetry={() => {
+    return <Results level={level} summary={summary} bestRun={Math.max(...runs(session))} onDone={onDone} onRetry={() => {
       const s = newSession(level);
       setSummary(null);
       setSession(s);
@@ -436,12 +440,30 @@ function Results({
   summary,
   bestRun,
   onRetry,
+  onDone,
 }: {
   level: LevelDef;
   summary: SessionSummary;
   bestRun: number;
   onRetry: () => void;
+  onDone?: () => void;
 }) {
+  if (onDone) {
+    return (
+      <div className="app results">
+        <p className="eyebrow">Today · {level.title}</p>
+        <h1 className="results__win">
+          {summary.correct}/{summary.total}
+        </h1>
+        <p className="muted">Median {summary.medianMs != null ? secs(summary.medianMs) : '—'} per square.</p>
+        <div className="results__actions">
+          <button type="button" className="btn btn--primary btn--block" onClick={onDone} autoFocus>
+            Continue →
+          </button>
+        </div>
+      </div>
+    );
+  }
   const passed = passes(level, summary);
   const idx = ALL_LEVELS.findIndex((l) => l.id === level.id);
   const nextLevel = ALL_LEVELS[idx + 1];

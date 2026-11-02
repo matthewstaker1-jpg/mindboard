@@ -1,0 +1,30 @@
+.lab { gap: 14px; }
+.lab > p { margin: 0; font-size: 14px; line-height: 1.5; }
+.lab__fen { display: flex; flex-direction: column; gap: 6px; font-size: 13px; color: var(--muted); }
+.lab__fen input,
+.lab__typed {
+  height: 44px;
+  padding: 0 12px;
+  border-radius: 12px;
+  border: 1px solid var(--line);
+  background: var(--surface);
+  color: var(--text);
+  font-size: 13px;
+}
+.lab__typed { flex: 1; min-width: 0; font: 500 15px var(--font-ui); }
+.lab__row { display: flex; gap: 10px; }
+.lab__entry {
+  padding: 12px 14px;
+  border-radius: 14px;
+  background: var(--surface);
+  border: 1px solid var(--line);
+  font-size: 14px;
+}
+.lab__head { display: flex; justify-content: space-between; margin-bottom: 8px; }
+.lab__verdict { font-weight: 700; }
+.lab__verdict[data-kind='confident'] { color: var(--lime); }
+.lab__verdict[data-kind='ask'] { color: var(--amber); }
+.lab__verdict[data-kind='none'] { color: var(--coral); }
+.lab__alts { width: 100%; border-collapse: collapse; }
+.lab__alts td { padding: 3px 6px 3px 0; vertical-align: top; }
+.lab__scores { display: flex; flex-wrap: wrap; gap: 6px 14px; margin-top: 8px; font-size: 13px; color: var(--muted); }

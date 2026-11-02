@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { Board, type Highlight } from '../board/Board';
 import { EMPTY_FEN, type Orientation, type Square } from '../board/squares';
 import { ALL_LEVELS, STAGE_NAMES, isGameLevel, levelHref } from '../levels/all';
-import { currentLevelIndex, displayStreak, isPassed, isUnlocked, levelsPassed } from '../progress/progress';
+import { currentLevelIndex, dayKey, displayStreak, effectiveElo, isPassed, isUnlocked, levelsPassed } from '../progress/progress';
 import { weakestSquares } from '../progress/stats';
 import { resetProgress, useProgress } from '../progress/store';
 import './Journey.css';
@@ -42,6 +42,16 @@ export function Journey() {
         </span>
       </header>
 
+      <a className="today" href="#/today" data-done={progress.todayDone === dayKey(new Date()) || undefined}>
+        <span className="today__text">
+          <span className="eyebrow">{progress.todayDone === dayKey(new Date()) ? 'Done today · go again?' : 'Today · 5–10 minutes'}</span>
+          <span className="today__title">Warm-up, follow the moves, one study position</span>
+        </span>
+        <span className="today__go" aria-hidden="true">
+          {progress.todayDone === dayKey(new Date()) ? '✓' : '→'}
+        </span>
+      </a>
+
       <section className="hero">
         {allDone ? (
           <>
@@ -71,7 +81,7 @@ export function Journey() {
             </div>
             {isGameLevel(level) && (
               <p className="hero__game mono">
-                vs engine ≈{level.engineElo} · {progress.levels[level.id]?.passRun ?? 0}/{level.pass.gamesInARow} passing games in a row
+                vs engine ≈{effectiveElo(level.engineElo, progress.engineOffset)} · {progress.levels[level.id]?.passRun ?? 0}/{level.pass.gamesInARow} passing games in a row
               </p>
             )}
             <a className="btn btn--primary btn--block hero__go" href={levelHref(level)}>
@@ -113,6 +123,35 @@ export function Journey() {
             </ol>
           </div>
         )}
+      </section>
+
+      <section className="card practice">
+        <div className="card__head">
+          <h2>Practice</h2>
+        </div>
+        <a href="#/study">
+          <span>
+            <span className="practice__title">Study and continue</span>
+            <span className="muted">Study a position, it fades, play a short goal</span>
+          </span>
+          <span className="mono muted">
+            {progress.study.played ? `${progress.study.passed}/${progress.study.played}` : ''}
+          </span>
+        </a>
+        <a href="#/follow">
+          <span>
+            <span className="practice__title">Follow the moves</span>
+            <span className="muted">No board: picture an opening, then answer</span>
+          </span>
+          <span className="mono muted">{progress.follow.plies} moves</span>
+        </a>
+        <a href="#/voice-lab">
+          <span>
+            <span className="practice__title">Voice lab</span>
+            <span className="muted">Check how well your spoken moves are recognised</span>
+          </span>
+          <span />
+        </a>
       </section>
 
       <section className="path">

@@ -1,0 +1,71 @@
+.follow { gap: 16px; }
+.follow__spacer { width: 44px; }
+.follow__hint { margin: 0; text-align: center; font-size: 14px; }
+
+.follow__stage {
+  min-height: 240px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  border-radius: 22px;
+  background: var(--surface);
+  border: 1px solid var(--line);
+  cursor: pointer;
+  user-select: none;
+}
+.follow__count { font-size: 13px; color: var(--muted); letter-spacing: 0.1em; }
+.follow__san {
+  font-size: 64px;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  animation: follow-in 0.25s ease-out;
+}
+@keyframes follow-in {
+  from { opacity: 0; transform: translateY(6px); }
+}
+.follow__ready { font-size: 18px; color: var(--muted); }
+.follow__controls {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 10px;
+}
+.follow__aloud { background: transparent; color: var(--muted); cursor: pointer; height: 34px; }
+.follow__aloud[aria-pressed='true'] { background: var(--lime); border-color: var(--lime); color: var(--ground); }
+.follow__keys { margin: 0; text-align: center; font-size: 12px; }
+
+.follow__q h1 { margin: 6px 0 16px; font-size: 26px; font-weight: 700; line-height: 1.2; }
+.follow__opts {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+}
+.follow__opt {
+  position: relative;
+  min-height: 60px;
+  border-radius: 14px;
+  border: 1px solid var(--line);
+  background: var(--surface);
+  color: var(--text);
+  font: 600 17px var(--font-ui);
+  cursor: pointer;
+}
+.follow__opts[data-kind='where'] .follow__opt { font-size: 22px; }
+.follow__opt:hover:not(:disabled) { border-color: #3a3f4a; }
+.follow__opt[data-state='right'] { border: 2px solid var(--lime); color: var(--lime); }
+.follow__opt[data-state='wrong'] { border: 2px solid var(--amber); color: var(--amber); }
+.follow__key {
+  position: absolute;
+  top: 6px;
+  left: 8px;
+  font-size: 10px;
+  color: #5d636e;
+}
+
+.follow__reveal { display: flex; flex-direction: column; gap: 10px; }
+.follow__reveal h1 { margin: 0; font-size: 40px; }
+.follow__reveal p { margin: 0; }
+.follow__board { width: min(100%, 44dvh); min-width: 240px; margin: 6px auto; }
+.follow__line { font-size: 13px; line-height: 1.6; color: var(--muted); }

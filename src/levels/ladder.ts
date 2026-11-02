@@ -211,3 +211,19 @@ export function passes(level: LevelDef, s: SessionSummary): boolean {
   if (level.pass.maxMedianMs != null && (s.medianMs == null || s.medianMs > level.pass.maxMedianMs)) return false;
   return true;
 }
+
+/** Today's warm-up: a short mixed square drill (not part of the ladder). */
+export function warmupLevel(labels: boolean): LevelDef {
+  return {
+    id: 'warmup',
+    stage: 1,
+    title: 'Warm-up',
+    blurb: 'Ten quick squares, both sides.',
+    drills: ['nameSquare', 'tapSquare'],
+    side: 'mixed',
+    labels,
+    questions: 10,
+    targetMs: 3000,
+    pass: { minAccuracy: 0.8 },
+  };
+}
