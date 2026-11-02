@@ -65,6 +65,8 @@ export interface GameState {
   peekMsLeft: number | null;
   peekMsUsed: number;
   slips: Slip[];
+  /** Take-backs used this game; the first is free. */
+  takeBacks: number;
   ownMoves: number;
   nextRecallAt: number;
   recallMissRun: number;
@@ -198,6 +200,7 @@ export function newGame(level: GameLevel, rng: Rng, opts: GameOptions | Color = 
     peekMsLeft: level.peekBudgetMs,
     peekMsUsed: 0,
     slips: [],
+    takeBacks: 0,
     ownMoves: 0,
     nextRecallAt: level.recallEvery ? between(rng, level.recallEvery) : Infinity,
     recallMissRun: 0,
@@ -351,7 +354,10 @@ export function playerMoveTyped(s: GameState, text: string): PlayerMoveResult {
   }
 }
 
-/** A move made on the board: from one square to another (promotions default to a queen). */
+/** Free take-backs per game; any more count as slips. */
+export const FREE_TAKE_BACKS = 1;
+
+/** A move made on the board: from one square to another. A promotion asks which piece. */
 export function playerMoveSquares(s: GameState, from: Square, to: Square): PlayerMoveResult {
   if (s.result || s.pendingRecall || turnOf(s) !== s.color) return { kind: 'unreadable', message: "It isn't your move." };
   const chess = chessOf(s);
@@ -362,7 +368,8 @@ export function playerMoveSquares(s: GameState, from: Square, to: Square): Playe
     return { kind: 'slip', state: slip(s, 'illegal', `No piece of yours on ${from}`, from), message: `None of your pieces is on ${from}.` };
   }
   const legal = chess.moves({ square: from, verbose: true }).filter((m) => m.to === to);
-  const m = legal.find((x) => !x.promotion || x.promotion === 'q');
+  if (legal.length > 1) return { kind: 'ambiguous', options: legal.map((x) => ({ san: x.san, uci: x.lan })) };
+  const m = legal[0];
   if (!m) {
     const name = PIECE_NAME[p.type];
     return {
@@ -386,7 +393,7 @@ export function engineMove(s: GameState, uci: string, rng: Rng): GameState {
   return next;
 }
 
-/** Undo your last move (and the reply to it). Counts as a slip. */
+/** Undo your last move (and the reply to it). The first one in a game is free; after that each counts as a slip. */
 export function takeBack(s: GameState): GameState | null {
   if (s.result) return null;
   const lastOwn = lastIndex(s.moves, (m) => m.color === s.color);
@@ -396,8 +403,10 @@ export function takeBack(s: GameState): GameState | null {
   const c = new Chess(s.startFen);
   for (const pm of moves) fog = nextFog(s.shownAs.hide, fog, c.move(pm.san), pm.color === s.color);
   const undone = s.moves[lastOwn]!;
+  const free = s.takeBacks < FREE_TAKE_BACKS;
   return {
-    ...slip({ ...s, moves }, 'take-back', `Took back ${undone.san}`),
+    ...(free ? { ...s, moves } : slip({ ...s, moves }, 'take-back', `Took back ${undone.san}`)),
+    takeBacks: s.takeBacks + 1,
     fogSquares: fog,
     ownMoves: s.ownMoves - 1,
     pendingRecall: null,

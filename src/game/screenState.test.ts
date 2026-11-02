@@ -56,3 +56,28 @@ describe('screen reducer', () => {
     expect(s.game.moves).toHaveLength(0);
   });
 });
+
+describe('misclick grace', () => {
+  it('a board slip can be waved off; a typed one cannot', async () => {
+    const { playerMoveSquares } = await import('./fogGame');
+    let s = fresh();
+    s = reduce(s, { type: 'moveResult', result: playerMoveSquares(s.game, 'e4', 'e5'), source: 'board' });
+    expect(s.game.slips).toHaveLength(1);
+    expect(s.grace).not.toBeNull();
+    s = reduce(s, { type: 'forgiveSlip' });
+    expect(s.game.slips).toHaveLength(0);
+    expect(s.grace).toBeNull();
+
+    s = reduce(s, { type: 'moveResult', result: playerMoveTyped(s.game, 'e5'), source: 'typed' });
+    expect(s.game.slips).toHaveLength(1);
+    expect(s.grace).toBeNull();
+  });
+
+  it('the grace ends', async () => {
+    const { playerMoveSquares } = await import('./fogGame');
+    let s = reduce(fresh(), { type: 'moveResult', result: playerMoveSquares(fresh().game, 'e4', 'e5'), source: 'board' });
+    s = reduce(s, { type: 'graceOver' });
+    s = reduce(s, { type: 'forgiveSlip' });
+    expect(s.game.slips).toHaveLength(1);
+  });
+});

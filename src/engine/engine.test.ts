@@ -88,4 +88,22 @@ describe('Engine', () => {
     const positions = sent.map((c, i) => [c, i] as const).filter(([c]) => c.startsWith('position'));
     expect(positions[1]![1]).toBeGreaterThan(gos[0]![1]);
   });
+
+  it('restarts a stuck worker and gives up on that search after the timeout', async () => {
+    let made = 0;
+    let killed = 0;
+    // The first worker never answers "go"; the replacement behaves.
+    const make = () => {
+      made++;
+      const first = made === 1;
+      const { w } = fakeWorker((cmd) => (first && cmd.startsWith('go') ? [] : stockfishLike(cmd)));
+      w.terminate = () => void killed++;
+      return w;
+    };
+    const e = new Engine(make, Math.random, { search: 50, boot: 1000 });
+    await expect(e.bestMove('8/8/8/8/8/8/8/K6k w - - 0 1', 1500)).rejects.toThrow(/took too long/);
+    expect(killed).toBe(1);
+    expect(made).toBe(2);
+    await expect(e.bestMove('8/8/8/8/8/8/8/K6k w - - 0 1', 1500)).resolves.toMatchObject({ best: 'e7e5' });
+  });
 });

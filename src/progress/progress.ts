@@ -156,6 +156,21 @@ export function withAnswer(
   return { ...p, stats: recordAnswer(p.stats, orientation, sq, correct, ms), bestRun: Math.max(p.bestRun, run) };
 }
 
+/** A slip in a game: counted against the square where you lost track, not as a naming miss. */
+export function withLostTrack(p: Progress, orientation: Orientation, sq: Square): Progress {
+  const side = p.lostTrack[orientation];
+  return { ...p, lostTrack: { ...p.lostTrack, [orientation]: { ...side, [sq]: (side[sq] ?? 0) + 1 } } };
+}
+
+/** Squares where you most often lose track of your pieces, worst first. */
+export function lostTrackSquares(p: Progress, orientation: Orientation, limit = 5): { square: Square; count: number }[] {
+  return Object.entries(p.lostTrack[orientation])
+    .map(([square, count]) => ({ square: square as Square, count: count ?? 0 }))
+    .filter((x) => x.count > 0)
+    .sort((a, b) => b.count - a.count)
+    .slice(0, limit);
+}
+
 function better(a: SessionSummary | null, b: SessionSummary): boolean {
   if (!a) return true;
   const ra = a.correct / a.total;

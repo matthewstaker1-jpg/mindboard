@@ -245,3 +245,16 @@
 .review__board .board { box-shadow: none; --board-radius: 6px; }
 .review__better { color: var(--lime); font-weight: 700; }
 .review__progress { margin: 0; }
+.game__forgive {
+  display: block;
+  margin-top: 6px;
+  padding: 0;
+  background: none;
+  border: 0;
+  color: var(--text);
+  font: inherit;
+  font-size: 13px;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+  cursor: pointer;
+}

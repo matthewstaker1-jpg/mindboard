@@ -92,23 +92,82 @@ export function defaultWorker(): UciWorker {
   return new Worker(`${import.meta.env.BASE_URL}engine/stockfish.js`) as unknown as UciWorker;
 }
 
+/** How long a search may take before the worker is assumed stuck and restarted. */
+export const SEARCH_TIMEOUT_MS = 15_000;
+/** First load downloads the engine, which can be slow on a phone. */
+export const BOOT_TIMEOUT_MS = 60_000;
+
+export class EngineTimeout extends Error {
+  constructor(what: string) {
+    super(`The engine took too long (${what}) and was restarted.`);
+  }
+}
+
 export class Engine {
-  private worker: UciWorker;
+  private worker!: UciWorker;
   private listeners = new Set<(line: string) => void>();
   private chain: Promise<unknown> = Promise.resolve();
-  private booted: Promise<void>;
+  private booted!: Promise<void>;
   private appliedOptions = new Map<string, string>();
+  /** Resolves once the engine has loaded and answered. */
+  ready = false;
 
   constructor(
-    make: () => UciWorker = defaultWorker,
+    private make: () => UciWorker = defaultWorker,
     private rng: () => number = Math.random,
+    private timeouts = { search: SEARCH_TIMEOUT_MS, boot: BOOT_TIMEOUT_MS },
   ) {
-    this.worker = make();
+    this.start();
+  }
+
+  private start() {
+    this.ready = false;
+    this.listeners.clear();
+    this.appliedOptions.clear();
+    this.worker = this.make();
     this.worker.onmessage = (e) => {
       const text = typeof e.data === 'string' ? e.data : String(e.data);
-      for (const line of text.split('\n')) for (const l of this.listeners) l(line);
+      for (const line of text.split('\n')) for (const l of [...this.listeners]) l(line);
     };
-    this.booted = this.send('uci', (l) => l === 'uciok').then(() => this.isReady());
+    this.booted = this.withTimeout(
+      this.send('uci', (l) => l === 'uciok').then(() => this.isReady()),
+      this.timeouts.boot,
+      'loading',
+    ).then(() => {
+      this.ready = true;
+    });
+    // Don't leave an unhandled rejection if nobody is waiting yet.
+    this.booted.catch(() => undefined);
+  }
+
+  /** Kill a stuck worker and start a fresh one; queued work continues on the new one. */
+  private restart() {
+    this.worker.terminate();
+    this.start();
+  }
+
+  private withTimeout<T>(p: Promise<T>, ms: number, what: string): Promise<T> {
+    return new Promise<T>((resolve, reject) => {
+      const t = setTimeout(() => {
+        this.restart();
+        reject(new EngineTimeout(what));
+      }, ms);
+      p.then(
+        (v) => {
+          clearTimeout(t);
+          resolve(v);
+        },
+        (e) => {
+          clearTimeout(t);
+          reject(e);
+        },
+      );
+    });
+  }
+
+  /** Waits for the engine to load (useful to show a loading state). */
+  whenReady(): Promise<void> {
+    return this.booted;
   }
 
   private send(cmd: string, until?: (line: string) => boolean, onLine?: (line: string) => void): Promise<void> {
@@ -134,9 +193,11 @@ export class Engine {
     return this.send('isready', (l) => l === 'readyok');
   }
 
-  /** Run one task at a time, after boot. */
+  /** Run one task at a time, after boot, each with a time limit. */
   private enqueue<T>(task: () => Promise<T>): Promise<T> {
-    const run = this.chain.then(() => this.booted).then(task);
+    const run = this.chain
+      .then(() => this.booted)
+      .then(() => this.withTimeout(task(), this.timeouts.search, 'thinking'));
     this.chain = run.catch(() => undefined);
     return run;
   }
@@ -211,9 +272,57 @@ export class Engine {
 }
 
 let shared: Engine | null = null;
+let reviewer: Engine | null = null;
 
-/** One engine for the whole app; it takes a moment to load, so start it early. */
+/** One engine for play; it takes a moment to load, so start it early. */
 export function getEngine(): Engine {
   shared ??= new Engine();
   return shared;
+}
+
+/** A second engine for post-game review, so a review never delays the next game. */
+export function getReviewEngine(): Engine {
+  reviewer ??= new Engine();
+  return reviewer;
+}
+
+/** Download progress of the engine file (0–1), or null before it starts. */
+export type LoadListener = (fraction: number | null) => void;
+let loadFraction: number | null = null;
+const loadListeners = new Set<LoadListener>();
+let preloading: Promise<void> | null = null;
+
+/**
+ * Fetch the engine's .wasm ourselves so we can report progress; the worker
+ * then gets it from the browser cache.
+ */
+export function preloadEngine(): Promise<void> {
+  preloading ??= (async () => {
+    try {
+      const res = await fetch(`${import.meta.env.BASE_URL}engine/stockfish.wasm`);
+      const total = Number(res.headers.get('content-length')) || 0;
+      if (!res.body || !total) return;
+      const reader = res.body.getReader();
+      let got = 0;
+      for (;;) {
+        const { done, value } = await reader.read();
+        if (done) break;
+        got += value.length;
+        loadFraction = Math.min(1, got / total);
+        loadListeners.forEach((l) => l(loadFraction));
+      }
+    } catch {
+      // Progress is a nicety; the worker loads the file either way.
+    } finally {
+      loadFraction = 1;
+      loadListeners.forEach((l) => l(1));
+    }
+  })();
+  return preloading;
+}
+
+export function onEngineLoad(l: LoadListener): () => void {
+  loadListeners.add(l);
+  l(loadFraction);
+  return () => loadListeners.delete(l);
 }

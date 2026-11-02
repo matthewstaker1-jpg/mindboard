@@ -34,12 +34,19 @@ export interface ScreenState {
   recallFeedback: { correct: boolean; text: string; next: GameState } | null;
   /** Study "hold the position" goals: evaluations at the start and end, from your side. */
   evals: { start: number | null; end: number | null };
+  /** A board slip that can still be forgiven as a misclick (its index in game.slips). */
+  grace: { slipIndex: number } | null;
 }
+
+/** How long a board slip can be waved off as a misclick. */
+export const MISCLICK_GRACE_MS = 3000;
 
 export type ScreenAction =
   | { type: 'restart'; game: GameState; studying: boolean }
   | { type: 'input'; text: string }
-  | { type: 'moveResult'; result: PlayerMoveResult }
+  | { type: 'moveResult'; result: PlayerMoveResult; source?: 'board' | 'typed' | 'voice' }
+  | { type: 'forgiveSlip' }
+  | { type: 'graceOver' }
   | { type: 'engineThinking'; on: boolean }
   | { type: 'engineMoved'; fen: string; uci: string }
   | { type: 'engineError'; error: string }
@@ -67,6 +74,7 @@ export function initialScreen(game: GameState, studying: boolean): ScreenState {
     engineError: null,
     recallFeedback: null,
     evals: { start: null, end: null },
+    grace: null,
   };
 }
 
@@ -81,16 +89,30 @@ export function makeScreenReducer(rng: Rng) {
         const r = a.result;
         switch (r.kind) {
           case 'played':
-            return { ...s, game: r.state, input: '', message: null, ambiguous: null };
+            return { ...s, game: r.state, input: '', message: null, ambiguous: null, grace: null };
           case 'ambiguous':
             return { ...s, ambiguous: r.options, message: { tone: 'info', text: 'Which one did you mean?' } };
           case 'slip':
-            return { ...s, game: r.state, ambiguous: null, message: { tone: 'warn', text: r.message } };
+            return {
+              ...s,
+              game: r.state,
+              ambiguous: null,
+              message: { tone: 'warn', text: r.message },
+              grace: a.source === 'board' ? { slipIndex: r.state.slips.length - 1 } : null,
+            };
           case 'unreadable':
             return { ...s, ambiguous: null, message: { tone: 'info', text: r.message } };
         }
         return s;
       }
+      case 'forgiveSlip': {
+        if (!s.grace) return s;
+        const i = s.grace.slipIndex;
+        const slips = s.game.slips.filter((_, j) => j !== i);
+        return { ...s, game: { ...s.game, slips }, grace: null, message: { tone: 'info', text: "Misclick: that one doesn't count." } };
+      }
+      case 'graceOver':
+        return { ...s, grace: null };
       case 'engineThinking':
         return { ...s, thinking: a.on };
       case 'engineMoved':

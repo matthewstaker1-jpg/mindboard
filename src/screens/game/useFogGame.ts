@@ -1,15 +1,15 @@
 // The game screen's side effects around the pure screen reducer: the engine
 // loop, study evaluations, saving the result, and the peek timer/Space key.
 
-import { useCallback, useEffect, useMemo, useReducer, useRef } from 'react';
+import { useCallback, useEffect, useMemo, useReducer, useRef, useState } from 'react';
 import { parsePlacement } from '../../board/squares';
 import type { StudyPosition } from '../../chess/positions';
-import { getEngine } from '../../engine/engine';
-import { type PlayerMoveResult, fenOf, gamePasses, newGame, turnOf } from '../../game/fogGame';
+import { getEngine, onEngineLoad } from '../../engine/engine';
+import { type PlayerMoveResult, type Slip, fenOf, gamePasses, newGame, turnOf } from '../../game/fogGame';
 import { povCp } from '../../game/review';
-import { initialScreen, makeScreenReducer } from '../../game/screenState';
+import { MISCLICK_GRACE_MS, initialScreen, makeScreenReducer } from '../../game/screenState';
 import type { GameLevel } from '../../levels/games';
-import { effectiveElo, engineOffset, withAnswer, withGame, withStudy } from '../../progress/progress';
+import { effectiveElo, engineOffset, withGame, withLostTrack, withStudy } from '../../progress/progress';
 import { useProgress } from '../../progress/store';
 
 const MIN_ENGINE_MS = 600;
@@ -17,16 +17,52 @@ const MIN_ENGINE_MS = 600;
 export const STUDY_TOLERANCE = 150;
 export const STUDY_MAX_SLIPS = 1;
 const reducer = makeScreenReducer(Math.random);
+/** With recall checks switched on, fog levels pause every few of your moves to ask where a piece is. */
+const RECALL_EVERY: [number, number] = [5, 8];
+
+/** The level as played: recall checks added when you've switched them on. */
+export function withRecallPref(level: GameLevel, recallChecks: boolean): GameLevel {
+  if (!recallChecks || level.recallEvery || level.hide.kind === 'none') return level;
+  return { ...level, recallEvery: RECALL_EVERY };
+}
+
+/** Engine load state for the player row: null once ready, else a 0–1 fraction (or null fraction if unknown). */
+function useEngineLoading(): { loading: boolean; fraction: number | null } {
+  const [ready, setReady] = useState(() => getEngine().ready);
+  const [fraction, setFraction] = useState<number | null>(null);
+  useEffect(() => {
+    if (ready) return;
+    let live = true;
+    const off = onEngineLoad((f) => live && setFraction(f));
+    getEngine()
+      .whenReady()
+      .then(() => live && setReady(true))
+      .catch(() => undefined);
+    return () => {
+      live = false;
+      off();
+    };
+  }, [ready]);
+  return { loading: !ready, fraction };
+}
 
 export function useFogGame(level: GameLevel, scenario?: StudyPosition) {
   const { progress, update } = useProgress();
+  const engineLoad = useEngineLoading();
+  const recallOn = progress?.prefs.recallChecks ?? false;
   const start = useCallback(
-    () => newGame(level, Math.random, scenario ? { startFen: scenario.fen, goal: scenario.goal } : {}),
-    [level, scenario],
+    () =>
+      newGame(
+        withRecallPref(level, recallOn),
+        Math.random,
+        scenario ? { startFen: scenario.fen, goal: scenario.goal } : {},
+      ),
+    [level, scenario, recallOn],
   );
   const [s, dispatch] = useReducer(reducer, undefined, () => initialScreen(start(), !!scenario));
   const { game, studying, peekSince } = s;
   const recorded = useRef(false);
+  const graceRef = useRef<Slip | undefined>(undefined);
 
   const fen = useMemo(() => fenOf(game), [game]);
   const fenPieces = useMemo(() => parsePlacement(fen), [fen]);
@@ -88,15 +124,32 @@ export function useFogGame(level: GameLevel, scenario?: StudyPosition) {
   }, [game, level, update, scenario, studyPassed]);
 
   const handle = useCallback(
-    (r: PlayerMoveResult) => {
-      dispatch({ type: 'moveResult', result: r });
-      // Slips feed the square stats, so drills bring those squares up more often.
+    (r: PlayerMoveResult, source: 'board' | 'typed' | 'voice' = 'typed') => {
+      dispatch({ type: 'moveResult', result: r, source });
+      // Slips are kept as lost-track stats (apart from square naming). Board slips wait out the misclick grace.
       const sq = r.kind === 'slip' ? r.state.slips.at(-1)?.square : undefined;
-      if (sq) update((p) => withAnswer(p, orientation, sq, false, 4000, 0));
+      if (sq && source !== 'board') update((p) => withLostTrack(p, orientation, sq));
+      // Moving on while a slip is still in its grace period settles it as real.
+      const pending = graceRef.current;
+      if (pending?.square) update((p) => withLostTrack(p, orientation, pending.square!));
+      graceRef.current = undefined;
       return r;
     },
     [update, orientation],
   );
+
+  // A board slip not waved off as a misclick in time becomes a real one.
+  const graceSlip = s.grace ? game.slips[s.grace.slipIndex] : undefined;
+  useEffect(() => {
+    graceRef.current = graceSlip;
+    if (!graceSlip) return;
+    const t = setTimeout(() => {
+      graceRef.current = undefined;
+      dispatch({ type: 'graceOver' });
+      if (graceSlip.square) update((p) => withLostTrack(p, orientation, graceSlip.square!));
+    }, MISCLICK_GRACE_MS);
+    return () => clearTimeout(t);
+  }, [graceSlip, update, orientation]);
 
   // Hold to peek: the board shows while held; held time comes out of the budget.
   const peekStart = useCallback(() => dispatch({ type: 'peekStart', at: performance.now() }), []);
@@ -158,6 +211,7 @@ export function useFogGame(level: GameLevel, scenario?: StudyPosition) {
     s,
     dispatch,
     progress,
+    engineLoad,
     fen,
     fenPieces,
     peeking,

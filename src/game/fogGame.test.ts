@@ -320,8 +320,18 @@ describe('take back', () => {
     expect(t.moves.map((m) => m.san)).toEqual(['e4', 'e5']);
     expect(t.fogSquares).toEqual(['e4']);
     expect(t.ownMoves).toBe(1);
-    expect(t.slips.at(-1)?.kind).toBe('take-back');
+    // The first take-back is free; the next one is a slip.
+    expect(t.slips).toHaveLength(0);
+    const again = takeBack(t)!;
+    expect(again.slips.at(-1)?.kind).toBe('take-back');
     expect(takeBack(newGame(level('fog-2'), seeded(63), 'w'))).toBeNull();
+  });
+
+  it('asks which piece on a board promotion', () => {
+    const s = newGame(level('fog-2'), seeded(64), { startFen: '8/4P1k1/8/8/8/8/5K2/8 w - - 0 1' });
+    const r = playerMoveSquares(s, 'e7', 'e8');
+    expect(r.kind).toBe('ambiguous');
+    if (r.kind === 'ambiguous') expect(r.options.map((o) => o.uci).sort()).toEqual(['e7e8b', 'e7e8n', 'e7e8q', 'e7e8r']);
   });
 });
 

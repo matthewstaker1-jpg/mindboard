@@ -4,13 +4,16 @@ import { GAME_LEVELS } from '../levels/games';
 
 // A stand-in engine that always answers with the first legal-looking reply we give it.
 const replies = ['e7e5', 'b8c6', 'g8f6'];
-vi.mock('../engine/engine', () => ({
-  getEngine: () => ({
+vi.mock('../engine/engine', () => {
+  const engine = {
+    ready: true,
+    whenReady: async () => {},
     bestMove: vi.fn(async () => ({ best: replies.shift() ?? null, score: { cp: 0 } })),
     evaluate: vi.fn(async () => ({ best: null, score: { cp: 0 } })),
     newGame: vi.fn(async () => {}),
-  }),
-}));
+  };
+  return { getEngine: () => engine, getReviewEngine: () => engine, onEngineLoad: () => () => {} };
+});
 vi.mock('idb-keyval', () => ({ get: vi.fn(async () => undefined), set: vi.fn(async () => {}) }));
 
 const { FogGame } = await import('./FogGame');

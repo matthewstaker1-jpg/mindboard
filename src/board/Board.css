@@ -123,3 +123,10 @@ button.board__sq:focus-visible {
 .board[data-tone='dark'] .board__label { color: var(--muted); }
 .board__label--rank { left: 3px; top: 3px; }
 .board__label--file { right: 3px; bottom: 2px; }
+/* Dragging a piece you can't see: a ring, so the board gives nothing away. */
+.board__float-blind {
+  width: 60%;
+  aspect-ratio: 1;
+  border-radius: 50%;
+  border: 3px solid var(--lime);
+}

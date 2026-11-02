@@ -160,5 +160,15 @@ describe('Board', () => {
       fireEvent.pointerDown(board, at('e2'));
       expect(onMove).toHaveBeenCalledWith('g1', 'e2');
     });
+
+    it('drags a piece you cannot see, without showing it', () => {
+      const { board, onMove, at, container } = setup({ hidden: () => 'gone', canSelect: () => true });
+      fireEvent.pointerDown(board, at('g1'));
+      fireEvent.pointerMove(board, at('f3'));
+      expect(container.querySelector('.board__float .board__piece')).toBeNull();
+      expect(container.querySelector('.board__float-blind')).not.toBeNull();
+      fireEvent.pointerUp(board, at('f3'));
+      expect(onMove).toHaveBeenCalledWith('g1', 'f3');
+    });
   });
 });

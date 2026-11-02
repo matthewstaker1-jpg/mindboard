@@ -50,7 +50,7 @@ export function FogGame({ level, scenario, onDone }: FogGameProps) {
     const moveInput: Partial<BoardProps> =
       yourTurn && !peeking
         ? {
-            onMove: (f, t) => handle(playerMoveSquares(game, f, t)),
+            onMove: (f, t) => handle(playerMoveSquares(game, f, t), 'board'),
             canDrag: (_s, p) => isWhitePiece(p) === (game.color === 'w'),
             // Any square that doesn't show an opponent's piece can be where you think yours is.
             canSelect: (sq) => {
@@ -89,7 +89,13 @@ export function FogGame({ level, scenario, onDone }: FogGameProps) {
           <span>Engine</span>
           <span className="mono muted">≈{elo}</span>
         </div>
-        {s.thinking && <span className="player__thinking">thinking…</span>}
+        {g.engineLoad.loading ? (
+          <span className="player__thinking">
+            loading engine{g.engineLoad.fraction !== null && g.engineLoad.fraction < 1 ? ` ${Math.round(g.engineLoad.fraction * 100)}%` : '…'}
+          </span>
+        ) : (
+          s.thinking && <span className="player__thinking">thinking…</span>
+        )}
       </div>
 
       {studying && scenario && (
@@ -131,7 +137,16 @@ export function FogGame({ level, scenario, onDone }: FogGameProps) {
         <>
           {(game.shownAs.showMoveList || view === 'list') && <MoveList game={game} />}
 
-          {s.message && <p className={`game__msg game__msg--${s.message.tone}`}>{s.message.text}</p>}
+          {s.message && (
+            <p className={`game__msg game__msg--${s.message.tone}`}>
+              {s.message.text}
+              {s.grace && (
+                <button type="button" className="game__forgive" onClick={() => dispatch({ type: 'forgiveSlip' })}>
+                  Misclick? Don't count it
+                </button>
+              )}
+            </p>
+          )}
           {s.ambiguous && (
             <div className="game__choices">
               {s.ambiguous.map((o) => (
@@ -162,7 +177,7 @@ export function FogGame({ level, scenario, onDone }: FogGameProps) {
             game={game}
             fen={fen}
             yourTurn={yourTurn}
-            onMove={(text) => handle(playerMoveTyped(game, text))}
+            onMove={(text) => handle(playerMoveTyped(game, text), 'voice')}
             onTakeBack={() => dispatch({ type: 'takeBack' })}
             onResign={() => dispatch({ type: 'resign' })}
             onPeekSpend={(ms) => {

@@ -60,7 +60,8 @@ export function resolveHidden(spec: HiddenSpec | undefined, sq: Square, piece: P
 
 interface DragState {
   from: Square;
-  piece: Piece;
+  /** Null when dragging from a square whose piece you can't see. */
+  piece: Piece | null;
   startX: number;
   startY: number;
   x: number;
@@ -124,13 +125,11 @@ export function Board({
     if (selected && sq !== selected && !(piece && held && isWhitePiece(piece) === isWhitePiece(held))) {
       setSelected(null);
       onMove(selected, sq);
-    } else if (!piece && canSelect?.(sq)) {
-      // A square with no visible piece: pick it by click only (nothing to drag).
-      setSelected(selected === sq ? null : { sq, fen });
-    } else if (piece) {
+    } else if (piece || canSelect?.(sq)) {
+      // A visible piece, or a square where you believe a hidden piece of yours stands: click or drag it.
       e.preventDefault();
       rootRef.current!.setPointerCapture?.(e.pointerId);
-      setDrag({ from: sq, piece, startX: x, startY: y, x, y, moved: false, over: sq });
+      setDrag({ from: sq, piece: piece ?? null, startX: x, startY: y, x, y, moved: false, over: sq });
     }
   };
 
@@ -230,7 +229,7 @@ export function Board({
       })}
       {dragging && (
         <span className="board__float" style={{ left: dragging.x, top: dragging.y }}>
-          <Glyph piece={dragging.piece} />
+          {dragging.piece ? <Glyph piece={dragging.piece} /> : <span className="board__float-blind" aria-hidden="true" />}
         </span>
       )}
     </div>

@@ -2,11 +2,12 @@ import { useState } from 'react';
 import { Chess } from 'chess.js';
 import { Board, type Highlight } from '../board/Board';
 import type { Square } from '../board/squares';
-import { getEngine } from '../engine/engine';
+import { getReviewEngine } from '../engine/engine';
 import { type Color, type PlayedMove, replay } from '../game/fogGame';
 import { type Mistake, biggestMistakes, formatEval, povCp } from '../game/review';
 
-const DEPTH = 10;
+/** Long games get a shallower search so the review stays quick. */
+const depthFor = (plies: number) => (plies > 80 ? 7 : plies > 40 ? 8 : 10);
 
 interface Found extends Mistake {
   fenBefore: string;
@@ -18,14 +19,14 @@ interface Found extends Mistake {
  * you most. Quiet by design: nothing during play.
  */
 export function GameReview({ startFen, moves, color }: { startFen: string; moves: PlayedMove[]; color: Color }) {
-  const [state, setState] = useState<'idle' | 'running' | 'done'>('idle');
+  const [state, setState] = useState<'idle' | 'running' | 'done' | 'failed'>('idle');
   const [done, setDone] = useState(0);
   const [found, setFound] = useState<Found[]>([]);
   const own = moves.filter((m) => m.color === color).length;
 
   const run = async () => {
     setState('running');
-    const engine = getEngine();
+    const engine = getReviewEngine();
     const c = new Chess(startFen);
     const fens = [c.fen()];
     for (const m of moves) {
@@ -34,8 +35,15 @@ export function GameReview({ startFen, moves, color }: { startFen: string; moves
     }
     const evals: number[] = [];
     const bests: (string | null)[] = [];
+    const depth = depthFor(moves.length);
     for (let i = 0; i < fens.length; i++) {
-      const r = await engine.evaluate(fens[i]!, DEPTH);
+      let r;
+      try {
+        r = await engine.evaluate(fens[i]!, depth);
+      } catch {
+        setState('failed');
+        return;
+      }
       const toMove = fens[i]!.split(' ')[1] as Color;
       evals.push(povCp(r.score, toMove, color));
       bests.push(r.best);
@@ -74,6 +82,13 @@ export function GameReview({ startFen, moves, color }: { startFen: string; moves
       <p className="muted review__progress">
         Checking your moves… {done}/{moves.length + 1}
       </p>
+    );
+  }
+  if (state === 'failed') {
+    return (
+      <button type="button" className="btn btn--block review__go" onClick={run}>
+        The review stalled. Try again
+      </button>
     );
   }
   if (found.length === 0) return <p className="muted">No big mistakes: nothing cost you two pawns or more.</p>;
