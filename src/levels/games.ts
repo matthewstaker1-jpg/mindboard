@@ -2,7 +2,7 @@
 
 export type HideRule =
   | { kind: 'none' }
-  /** `count` of your non-pawn pieces drawn as dashed rings, chosen at the start. */
+  /** `count` of your non-pawn pieces made invisible, chosen at random at the start. */
   | { kind: 'fog'; count: number }
   /** All your pawns gone. */
   | { kind: 'own-pawns' }
@@ -46,7 +46,7 @@ export const GAME_LEVELS: GameLevel[] = [
     mode: 'game',
     stage: 3,
     title: 'Fog · 2 pieces',
-    blurb: 'Two of your pieces fade to rings. Keep them in your head.',
+    blurb: 'Two of your pieces vanish. Remember which ones, and where they go.',
     engineElo: 800,
     side: 'white',
     hide: { kind: 'fog', count: 2 },

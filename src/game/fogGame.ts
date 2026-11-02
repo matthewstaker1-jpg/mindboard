@@ -119,7 +119,8 @@ export function hiddenMode(rule: HideRule, color: Color, fog: Square[], sq: Squa
     case 'none':
       return 'show';
     case 'fog':
-      return mine && fog.includes(sq) ? 'ghost' : 'show';
+      // Gone, not a ring: a ring gives away where the piece is (and, with two knights fogged, what it is).
+      return mine && fog.includes(sq) ? 'gone' : 'show';
     case 'own-pawns':
       return mine && piece.toLowerCase() === 'p' ? 'gone' : 'show';
     case 'own-all':

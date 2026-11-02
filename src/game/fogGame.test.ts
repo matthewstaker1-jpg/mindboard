@@ -67,7 +67,7 @@ describe('fog tracking', () => {
 
 describe('hiding rules', () => {
   it('hides the right pieces for each rule', () => {
-    expect(hiddenMode({ kind: 'fog', count: 2 }, 'w', ['c4'], 'c4', 'B')).toBe('ghost');
+    expect(hiddenMode({ kind: 'fog', count: 2 }, 'w', ['c4'], 'c4', 'B')).toBe('gone');
     expect(hiddenMode({ kind: 'fog', count: 2 }, 'w', ['c4'], 'e4', 'P')).toBe('show');
     expect(hiddenMode({ kind: 'own-pawns' }, 'b', [], 'e5', 'p')).toBe('gone');
     expect(hiddenMode({ kind: 'own-pawns' }, 'b', [], 'e4', 'P')).toBe('show');
