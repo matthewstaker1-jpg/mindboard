@@ -4,7 +4,8 @@ import { GAME_LEVELS } from '../levels/games';
 
 // A stand-in engine that always answers with the first legal-looking reply we give it.
 const replies = ['e7e5', 'b8c6', 'g8f6'];
-vi.mock('../engine/engine', () => {
+vi.mock('../engine/engine', async (importOriginal) => {
+  const real = await importOriginal<typeof import('../engine/engine')>();
   const engine = {
     ready: true,
     whenReady: async () => {},
@@ -12,7 +13,7 @@ vi.mock('../engine/engine', () => {
     evaluate: vi.fn(async () => ({ best: null, score: { cp: 0 } })),
     newGame: vi.fn(async () => {}),
   };
-  return { getEngine: () => engine, getReviewEngine: () => engine, onEngineLoad: () => () => {} };
+  return { ...real, getEngine: () => engine, getReviewEngine: () => engine, onEngineLoad: () => () => {} };
 });
 vi.mock('idb-keyval', () => ({ get: vi.fn(async () => undefined), set: vi.fn(async () => {}) }));
 

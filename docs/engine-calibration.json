@@ -1,0 +1,43 @@
+{
+  "date": "2026-11-02",
+  "engine": "stockfish-17.1-lite-single-03e3232.js",
+  "anchor": "Stockfish UCI_Elo 1320",
+  "results": [
+    {
+      "setting": "app 1200",
+      "opponent": "Stockfish UCI_Elo 1320",
+      "score": 0.1725,
+      "games": 200,
+      "w": 27,
+      "d": 15,
+      "l": 158,
+      "eloDiff": -272,
+      "margin": 65,
+      "measured": 1048
+    },
+    {
+      "setting": "app 1000",
+      "opponent": "app 1200",
+      "score": 0.2925,
+      "games": 200,
+      "w": 45,
+      "d": 27,
+      "l": 128,
+      "eloDiff": -153,
+      "margin": 54,
+      "measured": 894
+    },
+    {
+      "setting": "app 800",
+      "opponent": "app 1000",
+      "score": 0.3025,
+      "games": 200,
+      "w": 45,
+      "d": 31,
+      "l": 124,
+      "eloDiff": -145,
+      "margin": 53,
+      "measured": 749
+    }
+  ]
+}

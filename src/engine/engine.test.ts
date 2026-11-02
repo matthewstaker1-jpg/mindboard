@@ -38,18 +38,22 @@ describe('UCI parsing', () => {
 });
 
 describe('strength', () => {
-  it('uses UCI_Elo from 1320 up and Skill Level below', () => {
+  it('uses UCI_Elo from 1320 up and the closest measured low setting below', () => {
     const strong = strengthFor(1600);
     expect(strong.options).toContainEqual(['UCI_Elo', '1600']);
     expect(strong.options).toContainEqual(['UCI_LimitStrength', 'true']);
+    expect(strong.measured).toBe(1600);
     const weak = strengthFor(800);
     expect(weak.options).toContainEqual(['UCI_LimitStrength', 'false']);
     expect(weak.options).toContainEqual(['Skill Level', '0']);
     expect(weak.go).toBe('go depth 1');
-    expect(strengthFor(1200).go).toBe('go depth 3');
-    expect(strengthFor(800).mistakeRate).toBeGreaterThan(strengthFor(1200).mistakeRate);
+    expect(weak.measured).toBe(749);
+    expect(strengthFor(900).measured).toBe(894);
+    expect(strengthFor(1100).go).toBe('go depth 3');
+    // Past halfway to 1320, Stockfish's own limiter is closer.
+    expect(strengthFor(1200).options).toContainEqual(['UCI_Elo', String(UCI_ELO_MIN)]);
+    expect(strengthFor(400).measured).toBe(749);
     expect(strong.mistakeRate).toBe(0);
-    expect(strengthFor(UCI_ELO_MIN).options).toContainEqual(['UCI_Elo', String(UCI_ELO_MIN)]);
   });
 });
 

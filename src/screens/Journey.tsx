@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { Board, type Highlight } from '../board/Board';
 import { EMPTY_FEN, type Orientation, type Square } from '../board/squares';
 import { ALL_LEVELS, STAGE_NAMES, isGameLevel, levelHref } from '../levels/all';
-import { currentLevelIndex, dayKey, displayStreak, effectiveElo, engineOffset, isPassed, isUnlocked, levelsPassed, recentPasses, type Progress } from '../progress/progress';
+import { currentLevelIndex, dayKey, displayStreak, engineOffset, shownElo, isPassed, isUnlocked, levelsPassed, recentPasses, type Progress } from '../progress/progress';
 import { weakestSquares } from '../progress/stats';
 import { currentProfile, exportProgress, importProgress, resetProgress, useProgress } from '../progress/store';
 import './Journey.css';
@@ -81,7 +81,7 @@ export function Journey() {
             </div>
             {isGameLevel(level) && (
               <p className="hero__game mono">
-                vs engine ≈{effectiveElo(level.engineElo, engineOffset(progress, level.id))} · {recentPasses(progress.levels[level.id], level)} of last {level.pass.of} counted · need {level.pass.need}
+                vs engine ≈{shownElo(level.engineElo, engineOffset(progress, level.id))} · {recentPasses(progress.levels[level.id], level)} of last {level.pass.of} counted · need {level.pass.need}
               </p>
             )}
             <a className="btn btn--primary btn--block hero__go" href={levelHref(level)}>

@@ -1,6 +1,7 @@
 import { Board, type BoardProps, type Highlight } from '../board/Board';
 import { isWhitePiece, type Square } from '../board/squares';
 import type { StudyPosition } from '../chess/positions';
+import { strengthFor } from '../engine/engine';
 import { hiddenMode, playerMoveSquares, playerMoveTyped } from '../game/fogGame';
 import type { GameLevel } from '../levels/games';
 import { useKeys } from '../ui/keypads';
@@ -87,7 +88,7 @@ export function FogGame({ level, scenario, onDone }: FogGameProps) {
         <span className="player__badge">SF</span>
         <div className="player__who">
           <span>Engine</span>
-          <span className="mono muted">≈{elo}</span>
+          <span className="mono muted" title="Measured strength of the engine settings in use">≈{strengthFor(elo).measured}</span>
         </div>
         {g.engineLoad.loading ? (
           <span className="player__thinking">

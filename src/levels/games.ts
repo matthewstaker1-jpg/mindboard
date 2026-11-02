@@ -25,6 +25,7 @@ export interface GameLevel {
   stage: 3 | 4;
   title: string;
   blurb: string;
+  /** Target rating; the engine plays the nearest measured setting (see strengthFor). */
   engineElo: number;
   side: 'white' | 'random';
   hide: HideRule;
@@ -51,7 +52,7 @@ export const GAME_LEVELS: GameLevel[] = [
     stage: 3,
     title: 'Fade as they move',
     blurb: 'Every piece starts visible. Each of yours vanishes once it has moved.',
-    engineElo: 800,
+    engineElo: 750,
     side: 'white',
     hide: { kind: 'moved' },
     view: 'board',
@@ -66,7 +67,7 @@ export const GAME_LEVELS: GameLevel[] = [
     stage: 3,
     title: 'Fog · 2 pieces',
     blurb: 'Two of your pieces vanish. Remember which ones, and where they go.',
-    engineElo: 800,
+    engineElo: 750,
     side: 'white',
     hide: { kind: 'fog', count: 2 },
     view: 'board',
@@ -96,7 +97,7 @@ export const GAME_LEVELS: GameLevel[] = [
     stage: 3,
     title: 'Fog · 6 pieces',
     blurb: 'Six of your pieces in the fog.',
-    engineElo: 1000,
+    engineElo: 900,
     side: 'random',
     hide: { kind: 'fog', count: 6 },
     view: 'board',
@@ -111,7 +112,7 @@ export const GAME_LEVELS: GameLevel[] = [
     stage: 3,
     title: 'Pawnless',
     blurb: 'Your pawns are gone from view. Pieces stay.',
-    engineElo: 1000,
+    engineElo: 1050,
     side: 'random',
     hide: { kind: 'own-pawns' },
     view: 'board',
@@ -126,7 +127,7 @@ export const GAME_LEVELS: GameLevel[] = [
     stage: 3,
     title: 'Ghost army',
     blurb: 'All of your pieces are invisible. Theirs stay lit.',
-    engineElo: 1100,
+    engineElo: 1050,
     side: 'random',
     hide: { kind: 'own-all' },
     view: 'board',
@@ -141,7 +142,7 @@ export const GAME_LEVELS: GameLevel[] = [
     stage: 3,
     title: 'Dark board',
     blurb: 'Every piece is gone. Only the last move lights up.',
-    engineElo: 1200,
+    engineElo: 1320,
     side: 'random',
     hide: { kind: 'all' },
     view: 'dark',
@@ -156,7 +157,7 @@ export const GAME_LEVELS: GameLevel[] = [
     stage: 4,
     title: 'Move list only',
     blurb: 'No board at all. Just the moves.',
-    engineElo: 1200,
+    engineElo: 1320,
     side: 'random',
     hide: { kind: 'all' },
     view: 'list',
@@ -171,7 +172,7 @@ export const GAME_LEVELS: GameLevel[] = [
     stage: 4,
     title: 'Full blindfold',
     blurb: 'No board, no move list. Only the last move.',
-    engineElo: 1300,
+    engineElo: 1320,
     side: 'random',
     hide: { kind: 'all' },
     view: 'none',
@@ -200,7 +201,7 @@ export function studyLevel(hide: 'moved' | 'own-all' | 'all'): GameLevel {
     stage: 3,
     title: hide === 'all' ? 'Study · everything hidden' : hide === 'moved' ? 'Study · fade as they move' : 'Study · your pieces hidden',
     blurb: 'Study a position, then play on with it hidden.',
-    engineElo: 1000,
+    engineElo: 1050,
     side: 'white',
     hide: hide === 'all' ? { kind: 'all' } : hide === 'moved' ? { kind: 'moved' } : { kind: 'own-all' },
     view: hide === 'all' ? 'dark' : 'board',

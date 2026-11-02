@@ -2,6 +2,7 @@
 // Persistence lives in store.ts.
 
 import type { Orientation, Square } from '../board/squares';
+import { strengthFor } from '../engine/engine';
 import { ALL_LEVELS } from '../levels/all';
 import type { GameLevel } from '../levels/games';
 import { type LevelDef, type SessionSummary, passes } from '../levels/ladder';
@@ -85,9 +86,14 @@ export function defaultPrefs(): Prefs {
 export const ENGINE_STEP = 40;
 export const ENGINE_OFFSET_LIMIT = 400;
 
-/** The rating the engine actually plays at for a level, after your results have adjusted it. */
+/** The rating a level asks the engine for, after your results have adjusted it. */
 export function effectiveElo(levelElo: number, offset: number): number {
   return Math.max(600, Math.min(2400, levelElo + offset));
+}
+
+/** What to show: the measured strength of the settings that target actually uses. */
+export function shownElo(levelElo: number, offset: number): number {
+  return strengthFor(effectiveElo(levelElo, offset)).measured;
 }
 
 export function emptyProgress(): Progress {

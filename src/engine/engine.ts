@@ -31,40 +31,70 @@ export interface Strength {
   go: string;
   /** Chance of playing one of the other top candidate moves instead of the best. */
   mistakeRate: number;
+  /** The rating these settings were measured to play at (see docs/engine-calibration.json). */
+  measured: number;
 }
 
 /** Candidate moves considered when the engine is allowed to slip. */
 const CANDIDATES = 4;
 
+export interface LowSetting {
+  depth: number;
+  mistakeRate: number;
+  /** Measured by scripts/calibrate.ts: 200-game matches chained down from Stockfish's UCI_Elo 1320. */
+  measured: number;
+}
+
 /**
- * Map a target rating to engine settings. From 1320 up Stockfish limits
- * itself. Even its lowest Skill Level plays at roughly that strength, so
- * below 1320 it searches very shallowly and sometimes picks one of its other
- * top candidates: plausible beginner mistakes rather than random blunders.
+ * Settings below Stockfish's own limiter: a very shallow search that sometimes
+ * picks one of its other top candidates (plausible beginner mistakes rather
+ * than random blunders). Ratings measured 2026-11-02, about ±60.
  */
-export function strengthFor(elo: number): Strength {
-  if (elo >= UCI_ELO_MIN) {
-    return {
-      options: [
-        ['MultiPV', '1'],
-        ['Skill Level', '20'],
-        ['UCI_LimitStrength', 'true'],
-        ['UCI_Elo', String(Math.min(3190, Math.round(elo)))],
-      ],
-      go: 'go movetime 400',
-      mistakeRate: 0,
-    };
-  }
-  const depth = elo < 900 ? 1 : elo < 1100 ? 2 : 3;
+export const LOW_SETTINGS: readonly LowSetting[] = [
+  { depth: 1, mistakeRate: 0.5, measured: 749 },
+  { depth: 2, mistakeRate: 0.32, measured: 894 },
+  { depth: 3, mistakeRate: 0.12, measured: 1048 },
+];
+
+export function lowStrength(s: LowSetting): Strength {
   return {
     options: [
       ['MultiPV', String(CANDIDATES)],
       ['UCI_LimitStrength', 'false'],
       ['Skill Level', '0'],
     ],
-    go: `go depth ${depth}`,
-    mistakeRate: Math.min(0.5, Math.max(0, (UCI_ELO_MIN - elo) / 1000)),
+    go: `go depth ${s.depth}`,
+    mistakeRate: s.mistakeRate,
+    measured: s.measured,
   };
+}
+
+/** The weakest the engine can play, as measured. */
+export const ENGINE_FLOOR = LOW_SETTINGS[0]!.measured;
+
+/**
+ * Map a target rating to the closest real settings. From 1320 up Stockfish
+ * limits itself (UCI_Elo); below that we use the measured low settings.
+ * `measured` is what to show the player, not the target.
+ */
+export function strengthFor(elo: number): Strength {
+  const top = LOW_SETTINGS[LOW_SETTINGS.length - 1]!;
+  if (elo >= (top.measured + UCI_ELO_MIN) / 2) {
+    const e = Math.min(3190, Math.max(UCI_ELO_MIN, Math.round(elo)));
+    return {
+      options: [
+        ['MultiPV', '1'],
+        ['Skill Level', '20'],
+        ['UCI_LimitStrength', 'true'],
+        ['UCI_Elo', String(e)],
+      ],
+      go: 'go movetime 400',
+      mistakeRate: 0,
+      measured: e,
+    };
+  }
+  const nearest = LOW_SETTINGS.reduce((a, b) => (Math.abs(b.measured - elo) < Math.abs(a.measured - elo) ? b : a));
+  return lowStrength(nearest);
 }
 
 export function parseInfoScore(line: string): Score | null {
