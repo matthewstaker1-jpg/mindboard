@@ -1,0 +1,93 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Dark board — last move only</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=JetBrains+Mono:wght@500;700&display=swap">
+<style>body{margin:0}a{color:#C6F432}a:hover{color:#E2FF7A}</style>
+</helmet>
+<div style="width: 390px; height: 844px; box-sizing: border-box; background: #0E0F12; color: #ECEDEF; font-family: 'Space Grotesk', system-ui, sans-serif; display: flex; flex-direction: column; overflow: hidden">
+  <div style="padding: 18px 16px 6px; display: flex; align-items: center; justify-content: space-between">
+    <a href="Main.dc.html" aria-label="Back to journey" style="width: 44px; height: 44px; border-radius: 12px; background: #17191E; display: flex; align-items: center; justify-content: center; color: #ECEDEF">
+      <svg aria-hidden="true" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 18l-6-6 6-6"></path></svg>
+    </a>
+    <div style="font: 500 11px 'JetBrains Mono', monospace; letter-spacing: 0.12em; color: #9AA0AB">STAGE 3 · DARK BOARD</div>
+    <div style="width: 44px"></div>
+  </div>
+
+  <div style="padding: 10px 20px 16px; display: flex; align-items: center; gap: 12px">
+    <div style="width: 44px; height: 44px; border-radius: 50%; background: #1F2229; display: flex; align-items: center; justify-content: center">
+      <svg aria-hidden="true" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#C6F432" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 5L6 9H2v6h4l5 4z"></path><path d="M15.5 8.5a5 5 0 0 1 0 7M19 5a10 10 0 0 1 0 14"></path></svg>
+    </div>
+    <div style="display: flex; flex-direction: column; gap: 2px">
+      <span style="font-size: 13px; color: #9AA0AB">Black played</span>
+      <span style="font: 700 26px 'JetBrains Mono', monospace">8…Bg4</span>
+    </div>
+  </div>
+
+  <div style="display: flex; justify-content: center">
+    <div style="display: grid; grid-template-columns: repeat(8, minmax(0, 1fr)); width: 344px; border-radius: 12px; overflow: hidden; box-shadow: 0 24px 60px rgba(0,0,0,0.55); opacity: 0.92">
+      <sc-for list="{{sq}}" as="s" hint-placeholder-count="64">
+        <div style="position: relative; height: {{s.sz}}px; background: {{s.bg}}; display: flex; align-items: center; justify-content: center">
+          <span style="font-size: {{s.fs}}px; line-height: 1; color: {{s.pc}}; text-shadow: {{s.sh}}; font-weight: 700; font-family: 'Segoe UI Symbol', 'Noto Sans Symbols 2', 'DejaVu Sans', 'JetBrains Mono', serif">{{s.glyph}}</span>
+          <span style="position: absolute; left: 3px; top: 2px; font: 700 9px 'JetBrains Mono', monospace; color: {{s.lc}}">{{s.rl}}</span>
+          <span style="position: absolute; right: 3px; bottom: 1px; font: 700 9px 'JetBrains Mono', monospace; color: {{s.lc}}">{{s.fl}}</span>
+        </div>
+      </sc-for>
+    </div>
+  </div>
+
+  <div style="padding: 14px 20px 0; display: flex; flex-direction: column; gap: 8px">
+    <div style="display: flex; justify-content: space-between; align-items: center; height: 44px; padding: 0 14px; border-radius: 12px; background: #17191E">
+      <span style="font-size: 14px">Move list</span>
+      <span style="font: 700 12px 'JetBrains Mono', monospace; color: #9AA0AB">HIDDEN</span>
+    </div>
+    <div style="display: flex; justify-content: space-between; align-items: center; height: 44px; padding: 0 14px; border-radius: 12px; background: #17191E">
+      <span style="font-size: 14px">"Where is…?" questions</span>
+      <span style="font: 700 12px 'JetBrains Mono', monospace; color: #C6F432">2 LEFT</span>
+    </div>
+  </div>
+
+  <div style="margin: auto 16px 20px; display: flex; gap: 8px">
+    <label style="flex: 1; height: 56px; border-radius: 16px; background: #17191E; border: 1px solid #C6F432; display: flex; align-items: center; padding: 0 14px; gap: 8px">
+      <span style="position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0)">Your move</span>
+      <input type="text" value="h3" style="flex: 1; min-width: 0; border: 0; background: transparent; color: #ECEDEF; font: 700 20px 'JetBrains Mono', monospace; outline: none">
+    </label>
+    <button type="button" aria-label="Speak your move" style="width: 56px; height: 56px; border-radius: 16px; border: 0; background: #C6F432; color: #0E0F12; display: flex; align-items: center; justify-content: center">
+      <svg aria-hidden="true" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="3" width="6" height="12" rx="3"></rect><path d="M5 11a7 7 0 0 0 14 0M12 18v3"></path></svg>
+    </button>
+  </div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":390,"height":844}}'>
+class Component extends DCLogic {
+  buildBoard(o) {
+    var G = { K: '♚', Q: '♛', R: '♜', B: '♝', N: '♞', P: '♟' };
+    var F = 'abcdefgh'; var pos = {}; var rows = o.fen.split('/');
+    for (var r = 0; r < 8; r++) { var c = 0; var row = rows[r]; for (var k = 0; k < row.length; k++) { var ch = row[k]; if (ch >= '1' && ch <= '8') { c += parseInt(ch, 10); } else { pos[F[c] + (8 - r)] = ch; c++; } } }
+    var sz = o.size || 43; var out = [];
+    for (var i = 0; i < 8; i++) { for (var j = 0; j < 8; j++) {
+      var f = o.flip ? 7 - j : j; var rk = o.flip ? i + 1 : 8 - i; var sq = F[f] + rk; var light = (f + rk) % 2 === 1;
+      var bg = light ? '#2A2E37' : '#1F2229';
+      var h = o.hl ? o.hl[sq] : null;
+      if (h === 'a') { bg = light ? '#D4F55A' : '#B5DB2E'; }
+      if (h === 'f') { bg = light ? '#5E6B2A' : '#4D5822'; }
+      var mk = o.marks ? o.marks[sq] : null;
+      var lab = o.labels !== false;
+      out.push({ k: sq, bg: bg, glyph: mk || '', pc: '#0E0F12', sh: 'none', sz: sz, fs: Math.round(sz * 0.44),
+        rl: (lab && j === 0) ? String(rk) : '', fl: (lab && i === 7) ? F[f] : '', lc: '#9AA0AB' });
+    } }
+    return out;
+  }
+  renderVals() {
+    return { sq: this.buildBoard({ fen: '8/8/8/8/8/8/8/8', hl: { c8: 'f', g4: 'a' }, marks: { g4: 'Bg4' } }) };
+  }
+}
+</script>
+</body>
+</html>

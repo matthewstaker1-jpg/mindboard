@@ -1,0 +1,66 @@
+@import '@fontsource/space-grotesk/400.css';
+@import '@fontsource/space-grotesk/500.css';
+@import '@fontsource/space-grotesk/600.css';
+@import '@fontsource/space-grotesk/700.css';
+@import '@fontsource/jetbrains-mono/500.css';
+@import '@fontsource/jetbrains-mono/700.css';
+
+:root {
+  /* Ground and text */
+  --ground: #0e0f12;
+  --surface: #17191e;
+  --line: #2a2e37;
+  --text: #ecedef;
+  --muted: #9aa0ab;
+
+  /* Accents */
+  --lime: #c6f432;
+  --amber: #ffb547;
+  --coral: #e86a5b;
+
+  /* Board squares */
+  --board-light: #8e97a8;
+  --board-dark: #59627a;
+
+  /* Highlights, as light/dark square pairs */
+  --hl-target-light: #d4f55a;
+  --hl-target-dark: #b5db2e;
+  --hl-from-light: #a9b57a;
+  --hl-from-dark: #7f8b55;
+  --hl-warn-light: #ffc56e;
+  --hl-warn-dark: #f0a43c;
+  --hl-attacker-light: #ff8c7e;
+  --hl-attacker-dark: #e86a5b;
+
+  /* Dark board (stage 3, last move only) */
+  --void-light: #2a2e37;
+  --void-dark: #1f2229;
+  --void-from-light: #5e6b2a;
+  --void-from-dark: #4d5822;
+
+  /* Pieces and labels */
+  --piece-white: #fbfaf6;
+  --piece-black: #121318;
+  --label-on-light: #1e222b;
+  --label-on-dark: #f2f4f7;
+
+  --font-ui: 'Space Grotesk', system-ui, sans-serif;
+  --font-mono: 'JetBrains Mono', ui-monospace, monospace;
+
+  color-scheme: dark;
+}
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+html,
+body {
+  margin: 0;
+  background: var(--ground);
+  color: var(--text);
+  font-family: var(--font-ui);
+  -webkit-font-smoothing: antialiased;
+}

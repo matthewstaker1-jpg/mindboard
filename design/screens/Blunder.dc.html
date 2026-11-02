@@ -1,0 +1,90 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Blunder guard</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=JetBrains+Mono:wght@500;700&display=swap">
+<style>body{margin:0}a{color:#C6F432}a:hover{color:#E2FF7A}</style>
+</helmet>
+<div style="width: 390px; height: 844px; box-sizing: border-box; background: #050506; color: #ECEDEF; font-family: 'Space Grotesk', system-ui, sans-serif; display: flex; flex-direction: column; overflow: hidden">
+  <div style="padding: 18px 16px 6px; display: flex; align-items: center; justify-content: center">
+    <div style="display: flex; align-items: center; gap: 8px; padding: 8px 12px; border-radius: 999px; background: #121318; border: 1px solid #2A2E37; font: 600 12px 'Space Grotesk', sans-serif">
+      <svg aria-hidden="true" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#C6F432" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 14v-2a9 9 0 0 1 18 0v2"></path><rect x="3" y="14" width="4" height="7" rx="1.5"></rect><rect x="17" y="14" width="4" height="7" rx="1.5"></rect></svg>
+      Headphones mode
+    </div>
+  </div>
+
+  <div style="margin: 16px 16px 0; padding: 20px; border-radius: 24px; background: #1E1A12; border: 1px solid #6B5225; display: flex; flex-direction: column; gap: 14px">
+    <div style="display: flex; justify-content: space-between; align-items: center">
+      <span style="font: 700 11px 'JetBrains Mono', monospace; letter-spacing: 0.14em; color: #FFB547">BLUNDER GUARD</span>
+      <span style="font: 700 13px 'JetBrains Mono', monospace; color: #FFB547">+0.3 → −3.4</span>
+    </div>
+    <div style="font-size: 30px; font-weight: 700; line-height: 1.05">Hold on — <span style="font-family: 'JetBrains Mono', monospace">Nxe5</span>?</div>
+    <div style="font-size: 15px; line-height: 1.45; color: #E3D9C6">The knight on <span style="font-family: 'JetBrains Mono', monospace; color: #ECEDEF">c6</span> takes straight back. You'd give a knight for a pawn.</div>
+    <div style="display: flex; gap: 14px; align-items: center">
+      <div style="display: grid; grid-template-columns: repeat(8, minmax(0, 1fr)); width: 176px; border-radius: 8px; overflow: hidden; flex-shrink: 0">
+        <sc-for list="{{sq}}" as="s" hint-placeholder-count="64">
+          <div style="height: {{s.sz}}px; background: {{s.bg}}; display: flex; align-items: center; justify-content: center">
+            <span style="font-size: {{s.fs}}px; line-height: 1; color: {{s.pc}}; text-shadow: {{s.sh}}; font-weight: 700; font-family: 'Segoe UI Symbol', 'Noto Sans Symbols 2', 'DejaVu Sans', serif">{{s.glyph}}</span>
+          </div>
+        </sc-for>
+      </div>
+      <div style="font-size: 13px; line-height: 1.45; color: #C9C0AE">Only the pieces that matter are revealed. The rest stay hidden.</div>
+    </div>
+    <div style="padding: 10px 12px; border-radius: 12px; background: rgba(0,0,0,0.3); display: flex; gap: 8px; align-items: flex-start">
+      <svg aria-hidden="true" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#FFB547" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink: 0; margin-top: 2px"><path d="M11 5L6 9H2v6h4l5 4z"></path><path d="M15.5 8.5a5 5 0 0 1 0 7"></path></svg>
+      <span style="font-size: 13px; line-height: 1.4; color: #E3D9C6; font-style: italic">"Careful. The knight on c six can take back. Did you mean that?"</span>
+    </div>
+  </div>
+
+  <div style="padding: 18px 20px 0; display: flex; flex-direction: column; gap: 8px">
+    <span style="font-size: 13px; color: #9AA0AB">Did you mean…</span>
+    <div style="display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px">
+      <button type="button" style="height: 48px; border-radius: 12px; border: 1px solid #2A2E37; background: #121318; color: #ECEDEF; font: 700 16px 'JetBrains Mono', monospace">Ng5</button>
+      <button type="button" style="height: 48px; border-radius: 12px; border: 1px solid #2A2E37; background: #121318; color: #ECEDEF; font: 700 16px 'JetBrains Mono', monospace">d4</button>
+      <button type="button" style="height: 48px; border-radius: 12px; border: 1px solid #2A2E37; background: #121318; color: #ECEDEF; font: 700 16px 'JetBrains Mono', monospace">O-O</button>
+    </div>
+  </div>
+
+  <div style="margin-top: auto; padding: 0 16px 22px; display: flex; flex-direction: column; gap: 8px">
+    <button type="button" style="height: 52px; border-radius: 14px; border: 1px solid #2A2E37; background: #121318; color: #ECEDEF; font: 600 15px 'Space Grotesk', sans-serif">I thought c6 was empty</button>
+    <div style="display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px">
+      <button type="button" style="height: 52px; border-radius: 14px; border: 0; background: #C6F432; color: #0E0F12; font: 700 15px 'Space Grotesk', sans-serif">Take it back</button>
+      <button type="button" style="height: 52px; border-radius: 14px; border: 1px solid #6B5225; background: transparent; color: #FFB547; font: 700 15px 'Space Grotesk', sans-serif">Play it anyway</button>
+    </div>
+  </div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":390,"height":844}}'>
+class Component extends DCLogic {
+  buildBoard(o) {
+    var G = { K: '♚', Q: '♛', R: '♜', B: '♝', N: '♞', P: '♟' };
+    var F = 'abcdefgh'; var pos = {}; var rows = o.fen.split('/');
+    for (var r = 0; r < 8; r++) { var c = 0; var row = rows[r]; for (var k = 0; k < row.length; k++) { var ch = row[k]; if (ch >= '1' && ch <= '8') { c += parseInt(ch, 10); } else { pos[F[c] + (8 - r)] = ch; c++; } } }
+    var sz = o.size || 43; var out = [];
+    for (var i = 0; i < 8; i++) { for (var j = 0; j < 8; j++) {
+      var f = j; var rk = 8 - i; var sq = F[f] + rk; var light = (f + rk) % 2 === 1;
+      var p = pos[sq];
+      var bg = light ? '#3A3F4A' : '#2A2E37';
+      var h = o.hl ? o.hl[sq] : null;
+      if (h === 'f') { bg = light ? '#A9B57A' : '#7F8B55'; }
+      if (h === 'w') { bg = light ? '#FFC56E' : '#F0A43C'; }
+      if (h === 'e') { bg = light ? '#FF8C7E' : '#E86A5B'; }
+      var glyph = ''; var pc = '#FBFAF6'; var sh = 'none';
+      if (p) { var w = p === p.toUpperCase(); glyph = G[p.toUpperCase()] + '︎'; pc = w ? '#FBFAF6' : '#121318'; sh = w ? '0 0 1px #121318, 0 1px 2px rgba(0,0,0,0.6)' : '0 0 1px rgba(255,255,255,0.6)'; }
+      out.push({ k: sq, bg: bg, glyph: glyph, pc: pc, sh: sh, sz: sz, fs: Math.round(sz * 0.8) });
+    } }
+    return out;
+  }
+  renderVals() {
+    return { sq: this.buildBoard({ fen: '8/8/2n5/4p3/8/5N2/8/8', size: 22, hl: { f3: 'f', e5: 'w', c6: 'e' } }) };
+  }
+}
+</script>
+</body>
+</html>

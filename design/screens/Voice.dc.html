@@ -1,0 +1,86 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Headphones mode</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=JetBrains+Mono:wght@500;700&display=swap">
+<style>body{margin:0}a{color:#C6F432}a:hover{color:#E2FF7A}</style>
+</helmet>
+<div style="width: 390px; height: 844px; box-sizing: border-box; background: #050506; color: #ECEDEF; font-family: 'Space Grotesk', system-ui, sans-serif; display: flex; flex-direction: column; overflow: hidden">
+  <div style="padding: 18px 16px 6px; display: flex; align-items: center; justify-content: space-between">
+    <a href="Main.dc.html" aria-label="Back to journey" style="width: 44px; height: 44px; border-radius: 12px; background: #121318; display: flex; align-items: center; justify-content: center; color: #ECEDEF">
+      <svg aria-hidden="true" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 18l-6-6 6-6"></path></svg>
+    </a>
+    <div style="display: flex; align-items: center; gap: 8px; padding: 8px 12px; border-radius: 999px; background: #121318; border: 1px solid #2A2E37; font: 600 12px 'Space Grotesk', sans-serif">
+      <svg aria-hidden="true" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#C6F432" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 14v-2a9 9 0 0 1 18 0v2"></path><rect x="3" y="14" width="4" height="7" rx="1.5"></rect><rect x="17" y="14" width="4" height="7" rx="1.5"></rect></svg>
+      Headphones connected
+    </div>
+    <div style="width: 44px"></div>
+  </div>
+
+  <div style="padding: 14px 20px 0; display: flex; justify-content: space-between; font: 500 11px 'JetBrains Mono', monospace; letter-spacing: 0.12em; color: #8A909B">
+    <span>FULL BLINDFOLD · VS ENGINE</span><span>MOVE 9 · WHITE</span>
+  </div>
+
+  <div style="flex: 1; padding: 18px 20px 0; display: flex; flex-direction: column; gap: 12px">
+    <div style="align-self: flex-start; max-width: 270px; padding: 12px 14px; border-radius: 16px 16px 16px 4px; background: #121318; display: flex; flex-direction: column; gap: 4px">
+      <span style="font: 700 10px 'JetBrains Mono', monospace; letter-spacing: 0.12em; color: #8A909B">SPOKEN</span>
+      <span style="font-size: 15px">"Black plays bishop to g4."</span>
+    </div>
+    <div style="align-self: flex-end; max-width: 270px; padding: 12px 14px; border-radius: 16px 16px 4px 16px; background: #1A2010; border: 1px solid #4B5E17; display: flex; flex-direction: column; gap: 6px">
+      <span style="font-size: 15px">"Pawn h3"</span>
+      <span style="align-self: flex-start; padding: 3px 8px; border-radius: 6px; background: #C6F432; color: #0E0F12; font: 700 13px 'JetBrains Mono', monospace">h3 ✓</span>
+    </div>
+    <div style="align-self: flex-start; max-width: 270px; padding: 12px 14px; border-radius: 16px 16px 16px 4px; background: #121318; display: flex; flex-direction: column; gap: 4px">
+      <span style="font: 700 10px 'JetBrains Mono', monospace; letter-spacing: 0.12em; color: #8A909B">SPOKEN</span>
+      <span style="font-size: 15px">"h3. Black takes: bishop takes knight on f3."</span>
+    </div>
+
+    <div style="margin-top: auto; display: flex; flex-direction: column; align-items: center; gap: 14px; padding-bottom: 8px">
+      <div style="height: 56px; display: flex; align-items: center; gap: 4px">
+        <sc-for list="{{bars}}" as="b" hint-placeholder-count="28">
+          <div style="width: 4px; height: {{b.h}}px; border-radius: 2px; background: {{b.c}}"></div>
+        </sc-for>
+      </div>
+      <div style="font-size: 15px; color: #9AA0AB">Heard <span style="color: #ECEDEF">"queen takes f3"</span></div>
+      <div style="font: 700 44px 'JetBrains Mono', monospace; color: #C6F432; letter-spacing: -0.02em">Qxf3</div>
+      <div style="font-size: 13px; color: #8A909B">Playing in 1.5s · say "no" to cancel</div>
+    </div>
+  </div>
+
+  <div style="padding: 14px 16px 0; display: flex; flex-wrap: wrap; gap: 6px; justify-content: center">
+    <span style="padding: 7px 10px; border-radius: 999px; border: 1px solid #2A2E37; font: 500 12px 'JetBrains Mono', monospace; color: #9AA0AB">"repeat"</span>
+    <span style="padding: 7px 10px; border-radius: 999px; border: 1px solid #2A2E37; font: 500 12px 'JetBrains Mono', monospace; color: #9AA0AB">"where's my rook?"</span>
+    <span style="padding: 7px 10px; border-radius: 999px; border: 1px solid #2A2E37; font: 500 12px 'JetBrains Mono', monospace; color: #9AA0AB">"list my pieces"</span>
+    <span style="padding: 7px 10px; border-radius: 999px; border: 1px solid #2A2E37; font: 500 12px 'JetBrains Mono', monospace; color: #9AA0AB">"take back"</span>
+  </div>
+
+  <div style="padding: 18px 0 26px; display: flex; justify-content: center; align-items: center; gap: 28px">
+    <button type="button" aria-label="Repeat last move" style="width: 52px; height: 52px; border-radius: 50%; border: 1px solid #2A2E37; background: #121318; color: #ECEDEF; display: flex; align-items: center; justify-content: center">
+      <svg aria-hidden="true" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12a9 9 0 1 0 3-6.7L3 8"></path><path d="M3 3v5h5"></path></svg>
+    </button>
+    <button type="button" aria-label="Listening — tap to stop" style="width: 88px; height: 88px; border-radius: 50%; border: 0; background: #C6F432; color: #0E0F12; display: flex; align-items: center; justify-content: center; box-shadow: 0 0 0 10px rgba(198,244,50,0.14), 0 0 0 22px rgba(198,244,50,0.06)">
+      <svg aria-hidden="true" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="3" width="6" height="12" rx="3"></rect><path d="M5 11a7 7 0 0 0 14 0M12 18v3"></path></svg>
+    </button>
+    <button type="button" aria-label="Peek at board" style="width: 52px; height: 52px; border-radius: 50%; border: 1px solid #2A2E37; background: #121318; color: #ECEDEF; display: flex; align-items: center; justify-content: center">
+      <svg aria-hidden="true" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7S2 12 2 12z"></path><circle cx="12" cy="12" r="3"></circle></svg>
+    </button>
+  </div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":390,"height":844}}'>
+class Component extends DCLogic {
+  renderVals() {
+    var hs = [8, 14, 22, 30, 18, 40, 52, 34, 46, 28, 20, 36, 50, 56, 42, 30, 48, 38, 24, 32, 44, 26, 16, 22, 12, 18, 10, 6];
+    var bars = hs.map(function (h, i) { return { h: h, c: (i > 3 && i < 24) ? '#C6F432' : '#3A3F4A' }; });
+    return { bars: bars };
+  }
+}
+</script>
+</body>
+</html>

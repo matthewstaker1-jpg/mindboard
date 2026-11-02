@@ -1,0 +1,97 @@
+/* Sizes scale with the board's own width (container query units), so the
+   board can be dropped into any layout. 12.5cqw = one square. */
+.board {
+  container-type: inline-size;
+  display: grid;
+  grid-template-columns: repeat(8, minmax(0, 1fr));
+  width: 100%;
+  border-radius: 12px;
+  overflow: hidden;
+  box-shadow: 0 24px 60px rgba(0, 0, 0, 0.55);
+  user-select: none;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.board__sq {
+  --on-light: var(--board-light);
+  --on-dark: var(--board-dark);
+  position: relative;
+  aspect-ratio: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 0;
+  padding: 0;
+  border: 0;
+  border-radius: 0;
+  font: inherit;
+  color: inherit;
+}
+.board__sq.is-light { background: var(--on-light); }
+.board__sq.is-dark { background: var(--on-dark); }
+
+/* Tone sits under highlights via :where(), so a lit tile always wins. */
+:where(.board[data-tone='dark']) .board__sq {
+  --on-light: var(--void-light);
+  --on-dark: var(--void-dark);
+}
+
+.board__sq[data-hl='target'] { --on-light: var(--hl-target-light); --on-dark: var(--hl-target-dark); }
+.board__sq[data-hl='from'] { --on-light: var(--hl-from-light); --on-dark: var(--hl-from-dark); }
+.board__sq[data-hl='warn'] { --on-light: var(--hl-warn-light); --on-dark: var(--hl-warn-dark); }
+.board__sq[data-hl='attacker'] { --on-light: var(--hl-attacker-light); --on-dark: var(--hl-attacker-dark); }
+.board[data-tone='dark'] .board__sq[data-hl='from'] { --on-light: var(--void-from-light); --on-dark: var(--void-from-dark); }
+
+button.board__sq { cursor: pointer; }
+button.board__sq:active { filter: brightness(1.12); }
+button.board__sq:focus-visible {
+  outline: 3px solid var(--lime);
+  outline-offset: -3px;
+  z-index: 1;
+}
+
+.board__piece {
+  font-family: 'Segoe UI Symbol', 'Noto Sans Symbols 2', 'DejaVu Sans', 'Apple Symbols', serif;
+  font-size: 10cqw;
+  font-weight: 700;
+  line-height: 1;
+}
+.board__piece--w {
+  color: var(--piece-white);
+  text-shadow: 0 0 1px var(--piece-black), 0 1px 2px rgba(0, 0, 0, 0.6);
+}
+.board__piece--b {
+  color: var(--piece-black);
+  text-shadow: 0 0 1px rgba(255, 255, 255, 0.5);
+}
+
+.board__mark {
+  font-family: var(--font-mono);
+  font-size: 6.25cqw;
+  font-weight: 700;
+  line-height: 1;
+  color: var(--ground);
+}
+.board[data-tone='dark'] .board__mark { font-size: 5.5cqw; }
+
+.board__ghost {
+  position: absolute;
+  width: 56%;
+  height: 56%;
+  border-radius: 50%;
+  border: 2px dashed rgba(251, 250, 246, 0.75);
+}
+
+.board__label {
+  position: absolute;
+  font-family: var(--font-mono);
+  font-size: clamp(8px, 2.6cqw, 13px);
+  font-weight: 700;
+  line-height: 1;
+  pointer-events: none;
+}
+.is-light > .board__label { color: var(--label-on-light); }
+.is-dark > .board__label { color: var(--label-on-dark); }
+.board[data-tone='dark'] .board__label { color: var(--muted); }
+.board__label--rank { left: 3px; top: 3px; }
+.board__label--file { right: 3px; bottom: 2px; }

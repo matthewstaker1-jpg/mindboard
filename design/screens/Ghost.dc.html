@@ -1,0 +1,92 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Ghost army with recall check</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=JetBrains+Mono:wght@500;700&display=swap">
+<style>body{margin:0}a{color:#C6F432}a:hover{color:#E2FF7A}</style>
+</helmet>
+<div style="width: 390px; height: 844px; box-sizing: border-box; background: #0E0F12; color: #ECEDEF; font-family: 'Space Grotesk', system-ui, sans-serif; display: flex; flex-direction: column; overflow: hidden; position: relative">
+  <div style="padding: 18px 16px 6px; display: flex; align-items: center; justify-content: space-between">
+    <a href="Main.dc.html" aria-label="Back to journey" style="width: 44px; height: 44px; border-radius: 12px; background: #17191E; display: flex; align-items: center; justify-content: center; color: #ECEDEF">
+      <svg aria-hidden="true" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 18l-6-6 6-6"></path></svg>
+    </a>
+    <div style="font: 500 11px 'JetBrains Mono', monospace; letter-spacing: 0.12em; color: #9AA0AB">STAGE 3 · GHOST ARMY</div>
+    <div style="width: 44px"></div>
+  </div>
+
+  <div style="padding: 6px 23px 12px; font-size: 14px; color: #9AA0AB">All 16 of your pieces are invisible. Theirs stay lit.</div>
+
+  <div style="display: flex; justify-content: center">
+    <div style="display: grid; grid-template-columns: repeat(8, minmax(0, 1fr)); width: 344px; border-radius: 12px; overflow: hidden; box-shadow: 0 24px 60px rgba(0,0,0,0.55)">
+      <sc-for list="{{sq}}" as="s" hint-placeholder-count="64">
+        <div style="position: relative; height: {{s.sz}}px; background: {{s.bg}}; display: flex; align-items: center; justify-content: center">
+          <span style="font-size: {{s.fs}}px; line-height: 1; color: {{s.pc}}; text-shadow: {{s.sh}}; font-weight: 700; font-family: 'Segoe UI Symbol', 'Noto Sans Symbols 2', 'DejaVu Sans', 'JetBrains Mono', serif">{{s.glyph}}</span>
+          <div style="position: absolute; width: {{s.gs}}px; height: {{s.gs}}px; border-radius: 50%; border: {{s.ring}}; box-sizing: border-box"></div>
+          <span style="position: absolute; left: 3px; top: 2px; font: 700 9px 'JetBrains Mono', monospace; color: {{s.lc}}">{{s.rl}}</span>
+          <span style="position: absolute; right: 3px; bottom: 1px; font: 700 9px 'JetBrains Mono', monospace; color: {{s.lc}}">{{s.fl}}</span>
+        </div>
+      </sc-for>
+    </div>
+  </div>
+
+  <div style="margin: 12px 16px 0; padding: 10px 12px; border-radius: 12px; background: #121418; border: 1px solid #2A2E37; font: 500 13px 'JetBrains Mono', monospace; color: #9AA0AB; white-space: nowrap; overflow: hidden">
+    …4.c3 Nf6 5.d3 d6 6.O-O <span style="color: #ECEDEF; background: #2A2E37; padding: 2px 5px; border-radius: 5px">O-O</span>
+  </div>
+
+  <div style="position: absolute; left: 0; right: 0; bottom: 0; padding: 22px 20px 24px; border-radius: 26px 26px 0 0; background: #17191E; border-top: 1px solid #3A3F4A; box-shadow: 0 -20px 60px rgba(0,0,0,0.6); display: flex; flex-direction: column; gap: 14px">
+    <div style="width: 40px; height: 4px; border-radius: 2px; background: #3A3F4A; align-self: center"></div>
+    <div style="display: flex; justify-content: space-between; align-items: center">
+      <span style="font: 700 11px 'JetBrains Mono', monospace; letter-spacing: 0.14em; color: #C6F432">RECALL CHECK</span>
+      <span style="font: 700 12px 'JetBrains Mono', monospace; color: #FFB547">+20 XP</span>
+    </div>
+    <div style="font-size: 22px; font-weight: 600; line-height: 1.2">Where is your light-squared bishop?</div>
+    <div style="display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 8px">
+      <button type="button" style="height: 52px; border-radius: 14px; border: 1px solid #2A2E37; background: #0E0F12; color: #ECEDEF; font: 700 17px 'JetBrains Mono', monospace">b5</button>
+      <button type="button" style="height: 52px; border-radius: 14px; border: 2px solid #C6F432; background: #0E0F12; color: #ECEDEF; font: 700 17px 'JetBrains Mono', monospace">c4</button>
+      <button type="button" style="height: 52px; border-radius: 14px; border: 1px solid #2A2E37; background: #0E0F12; color: #ECEDEF; font: 700 17px 'JetBrains Mono', monospace">e2</button>
+      <button type="button" style="height: 52px; border-radius: 14px; border: 1px solid #2A2E37; background: #0E0F12; color: #ECEDEF; font: 700 17px 'JetBrains Mono', monospace">d3</button>
+    </div>
+    <div style="font-size: 13px; color: #9AA0AB; line-height: 1.4">Checks fire at random every few moves. Miss two in a row and the fog steps back a level.</div>
+  </div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":390,"height":844}}'>
+class Component extends DCLogic {
+  buildBoard(o) {
+    var G = { K: '♚', Q: '♛', R: '♜', B: '♝', N: '♞', P: '♟' };
+    var F = 'abcdefgh'; var pos = {}; var rows = o.fen.split('/');
+    for (var r = 0; r < 8; r++) { var c = 0; var row = rows[r]; for (var k = 0; k < row.length; k++) { var ch = row[k]; if (ch >= '1' && ch <= '8') { c += parseInt(ch, 10); } else { pos[F[c] + (8 - r)] = ch; c++; } } }
+    var sz = o.size || 43; var out = [];
+    for (var i = 0; i < 8; i++) { for (var j = 0; j < 8; j++) {
+      var f = o.flip ? 7 - j : j; var rk = o.flip ? i + 1 : 8 - i; var sq = F[f] + rk; var light = (f + rk) % 2 === 1;
+      var p = pos[sq]; var hm = (o.hide && p) ? o.hide(p, sq) : '';
+      var bg = light ? '#8E97A8' : '#59627A';
+      var h = o.hl ? o.hl[sq] : null;
+      if (h === 'a') { bg = light ? '#D4F55A' : '#B5DB2E'; }
+      if (h === 'f') { bg = light ? '#A9B57A' : '#7F8B55'; }
+      if (h === 'w') { bg = light ? '#FFC56E' : '#F0A43C'; }
+      if (h === 'e') { bg = light ? '#FF8C7E' : '#E86A5B'; }
+      var mk = o.marks ? o.marks[sq] : null;
+      var glyph = ''; var pc = '#FBFAF6'; var sh = 'none';
+      if (mk) { glyph = mk; pc = '#0E0F12'; }
+      else if (p && hm !== 'ghost' && hm !== 'gone') { var w = p === p.toUpperCase(); glyph = G[p.toUpperCase()] + '︎'; pc = w ? '#FBFAF6' : '#121318'; sh = w ? '0 0 1px #121318, 0 1px 2px rgba(0,0,0,0.6)' : '0 0 1px rgba(255,255,255,0.5)'; }
+      var lab = o.labels !== false;
+      out.push({ k: sq, bg: bg, glyph: glyph, pc: pc, sh: sh, sz: sz, fs: Math.round(sz * (mk ? 0.5 : 0.8)), gs: Math.round(sz * 0.56),
+        ring: hm === 'ghost' ? '2px dashed rgba(251,250,246,0.75)' : '0px solid transparent',
+        rl: (lab && j === 0) ? String(rk) : '', fl: (lab && i === 7) ? F[f] : '', lc: light ? '#1E222B' : '#F2F4F7' });
+    } }
+    return out;
+  }
+  renderVals() {
+    return { sq: this.buildBoard({ fen: 'r1bq1rk1/ppp2ppp/2np1n2/2b1p3/2B1P3/2PP1N2/PP3PPP/RNBQ1RK1', hl: { e8: 'f', g8: 'f' }, hide: function (p) { return p === p.toUpperCase() ? 'gone' : ''; } }) };
+  }
+}
+</script>
+</body>
+</html>
