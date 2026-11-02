@@ -4,9 +4,34 @@
     {
       "name": "mindboard",
       "runtimeExecutable": "/Users/mattstaker/.local/node/bin/npm",
-      "runtimeArgs": ["run", "dev", "--", "--port", "5173", "--strictPort"],
-      "env": { "PATH": "/Users/mattstaker/.local/node/bin:/usr/bin:/bin" },
+      "runtimeArgs": [
+        "run",
+        "dev",
+        "--",
+        "--port",
+        "5173",
+        "--strictPort"
+      ],
+      "env": {
+        "PATH": "/Users/mattstaker/.local/node/bin:/usr/bin:/bin"
+      },
       "port": 5173
+    },
+    {
+      "name": "pages-preview",
+      "runtimeExecutable": "/Users/mattstaker/.local/node/bin/npx",
+      "runtimeArgs": [
+        "vite",
+        "preview",
+        "--base=/mindboard/",
+        "--port",
+        "4173",
+        "--strictPort"
+      ],
+      "env": {
+        "PATH": "/Users/mattstaker/.local/node/bin:/usr/bin:/bin"
+      },
+      "port": 4173
     }
   ]
 }
