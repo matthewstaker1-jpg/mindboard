@@ -1,23 +1,12 @@
 import { useState } from 'react';
 import { ENDGAMES, type StudyPosition, middlegamePositions } from '../chess/positions';
 import { studyLevel } from '../levels/games';
-import { useProgress } from '../progress/store';
+import type { StudyKind } from '../progress/progress';
+import { usePref, useProgress } from '../progress/store';
 import { FogGame } from './FogGame';
 import './Study.css';
 
-type Kind = 'middlegame' | 'endgame' | 'any';
-type Hide = 'own-all' | 'all';
-const PREF = 'mindboard.study';
-
-function readPrefs(): { kind: Kind; hide: Hide } {
-  try {
-    return { kind: 'any', hide: 'own-all', ...JSON.parse(localStorage.getItem(PREF) ?? '{}') };
-  } catch {
-    return { kind: 'any', hide: 'own-all' };
-  }
-}
-
-function pick(kind: Kind): StudyPosition {
+function pick(kind: StudyKind): StudyPosition {
   const pool = kind === 'middlegame' ? middlegamePositions() : kind === 'endgame' ? ENDGAMES : [...middlegamePositions(), ...ENDGAMES];
   return pool[Math.floor(Math.random() * pool.length)]!;
 }
@@ -25,18 +14,9 @@ function pick(kind: Kind): StudyPosition {
 /** Study and continue: choose what kind of position and how much fades, then play it. */
 export function Study({ onDone }: { onDone?: () => void }) {
   const { progress } = useProgress();
-  const [prefs, setPrefs] = useState(readPrefs);
+  const [prefs, save] = usePref('study');
   // Today skips the setup and uses your last settings.
-  const [position, setPosition] = useState<StudyPosition | null>(() => (onDone ? pick(readPrefs().kind) : null));
-
-  const save = (p: { kind: Kind; hide: Hide }) => {
-    setPrefs(p);
-    try {
-      localStorage.setItem(PREF, JSON.stringify(p));
-    } catch {
-      // Not remembered; fine for this visit.
-    }
-  };
+  const [position, setPosition] = useState<StudyPosition | null>(() => (onDone ? pick(prefs.kind) : null));
 
   if (position) return <FogGame key={position.id} level={studyLevel(prefs.hide)} scenario={position} onDone={onDone} />;
 

@@ -13,26 +13,75 @@ export interface LevelRecord {
   best: SessionSummary | null;
   /** Game levels: passing games in a row right now, and results so far. */
   passRun?: number;
+  /** Game levels: whether each of the most recent games counted, newest last. */
+  recent?: boolean[];
   games?: { win: number; draw: number; loss: number };
 }
 
+export type StudyKind = 'middlegame' | 'endgame' | 'any';
+export type StudyHide = 'own-all' | 'all';
+
+/** Your settings. They live in the same saved document as progress so export/import carries them. */
+export interface Prefs {
+  /** Show letters and numbers on boards that allow them. */
+  coords: boolean;
+  voice: boolean;
+  /** Prompts and engine moves are spoken, not written. */
+  earsOnly: boolean;
+  /** Games pause now and then to ask where a hidden piece is. */
+  recallChecks: boolean;
+  study: { kind: StudyKind; hide: StudyHide };
+  follow: { pace: number; aloud: boolean };
+  /** The first-run walkthrough has been seen. */
+  onboarded: boolean;
+}
+
+/** Spaced repetition for squares you miss: when each should come back. */
+export interface ReviewCard {
+  /** YYYY-MM-DD it's next due. */
+  due: string;
+  /** Days until the next review after a correct answer. */
+  interval: number;
+}
+
+/** Lost-track slips per square (kept apart from naming accuracy). */
+export type LostTrackTable = Record<Orientation, Partial<Record<Square, number>>>;
+
+export const PROGRESS_VERSION = 2;
+
 export interface Progress {
-  version: 1;
+  version: typeof PROGRESS_VERSION;
   stats: StatsTable;
+  lostTrack: LostTrackTable;
   levels: Record<string, LevelRecord>;
   streak: { days: number; lastDay: string | null };
   /** Longest run of correct answers in a row, ever. */
   bestRun: number;
   /**
-   * Added to every game level's engine rating. Moves up when you win and
-   * down when you lose, so games settle near an even score.
+   * Added to each game level's engine rating, per level. Moves up when you
+   * win and down when you lose, so games settle near an even score.
    */
-  engineOffset: number;
+  engineOffsets: Record<string, number>;
   study: { played: number; passed: number };
   /** Follow the moves: how many plies the next round reads out. */
   follow: { plies: number; rounds: number; perfect: number };
   /** The last day (YYYY-MM-DD) the Today session was finished. */
   todayDone: string | null;
+  /** Squares due for review on later days, keyed "white:e4". */
+  review: Record<string, ReviewCard>;
+  prefs: Prefs;
+}
+
+export function defaultPrefs(): Prefs {
+  return {
+    coords: true,
+    voice: false,
+    earsOnly: false,
+    recallChecks: false,
+    study: { kind: 'any', hide: 'own-all' },
+    follow: { pace: 1, aloud: false },
+    onboarded: false,
+  };
 }
 
 export const ENGINE_STEP = 40;
@@ -45,15 +94,18 @@ export function effectiveElo(levelElo: number, offset: number): number {
 
 export function emptyProgress(): Progress {
   return {
-    version: 1,
+    version: PROGRESS_VERSION,
     stats: emptyStats(),
+    lostTrack: { white: {}, black: {} },
     levels: {},
     streak: { days: 0, lastDay: null },
     bestRun: 0,
-    engineOffset: 0,
+    engineOffsets: {},
     study: { played: 0, passed: 0 },
     follow: { plies: 6, rounds: 0, perfect: 0 },
     todayDone: null,
+    review: {},
+    prefs: defaultPrefs(),
   };
 }
 
@@ -130,11 +182,19 @@ export function withSession(p: Progress, level: LevelDef, summary: SessionSummar
   return { ...p, levels: { ...p.levels, [level.id]: record }, streak: withDay(p, now) };
 }
 
-/** Nudge the engine towards an even score: up after a win, down after a loss. */
-export function withEngineResult(p: Progress, outcome: 'win' | 'draw' | 'loss'): Progress {
+export function engineOffset(p: Progress, levelId: string): number {
+  return p.engineOffsets[levelId] ?? 0;
+}
+
+/** Nudge this level's engine towards an even score: up after a win, down after a loss. */
+export function withEngineResult(p: Progress, levelId: string, outcome: 'win' | 'draw' | 'loss'): Progress {
   const step = outcome === 'win' ? ENGINE_STEP : outcome === 'loss' ? -ENGINE_STEP : 0;
-  const engineOffset = Math.max(-ENGINE_OFFSET_LIMIT, Math.min(ENGINE_OFFSET_LIMIT, p.engineOffset + step));
-  return { ...p, engineOffset };
+  const next = Math.max(-ENGINE_OFFSET_LIMIT, Math.min(ENGINE_OFFSET_LIMIT, engineOffset(p, levelId) + step));
+  return { ...p, engineOffsets: { ...p.engineOffsets, [levelId]: next } };
+}
+
+export function withPrefs(p: Progress, change: Partial<Prefs>): Progress {
+  return { ...p, prefs: { ...p.prefs, ...change } };
 }
 
 export function withStudy(p: Progress, passed: boolean, now: Date): Progress {
@@ -182,5 +242,5 @@ export function withGame(
     passRun,
     passed: prev.passed || passRun >= level.pass.gamesInARow,
   };
-  return withEngineResult({ ...p, levels: { ...p.levels, [level.id]: record }, streak: withDay(p, now) }, outcome);
+  return withEngineResult({ ...p, levels: { ...p.levels, [level.id]: record }, streak: withDay(p, now) }, level.id, outcome);
 }

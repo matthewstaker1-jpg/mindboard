@@ -4,22 +4,12 @@ import type { Square } from '../board/squares';
 import { moveToWords } from '../chess/spoken';
 import { type FollowRound, checkFollow, makeFollowRound } from '../drills/follow';
 import { withFollowRound } from '../progress/progress';
-import { useProgress } from '../progress/store';
+import { usePref, useProgress } from '../progress/store';
 import { useKeys } from '../ui/keypads';
 import { Speaker } from '../voice/recogniser';
 import './FollowMoves.css';
 
 const PACES = [3000, 2000, 1300];
-const PREF = 'mindboard.follow';
-
-function readPrefs(): { pace: number; aloud: boolean } {
-  try {
-    return { pace: 1, aloud: false, ...JSON.parse(localStorage.getItem(PREF) ?? '{}') };
-  } catch {
-    return { pace: 1, aloud: false };
-  }
-}
-
 type Phase = 'reading' | 'questions' | 'reveal';
 
 export function FollowMoves({ onDone }: { onDone?: () => void }) {
@@ -30,17 +20,8 @@ export function FollowMoves({ onDone }: { onDone?: () => void }) {
   const [qi, setQi] = useState(0);
   const [picked, setPicked] = useState<string | null>(null);
   const [score, setScore] = useState(0);
-  const [prefs, setPrefs] = useState(readPrefs);
+  const [prefs, savePrefs] = usePref('follow');
   const speaker = useRef(new Speaker());
-
-  const savePrefs = (p: { pace: number; aloud: boolean }) => {
-    setPrefs(p);
-    try {
-      localStorage.setItem(PREF, JSON.stringify(p));
-    } catch {
-      // Not remembered; fine for this visit.
-    }
-  };
 
   const fresh = () => {
     if (!progress) return;

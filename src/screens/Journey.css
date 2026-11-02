@@ -178,12 +178,15 @@
 
 .journey__foot {
   display: flex;
+  flex-wrap: wrap;
+  gap: 8px 16px;
   justify-content: space-between;
   padding-top: 8px;
   font-size: 13px;
 }
 .journey__foot a,
-.journey__foot button {
+.journey__foot button,
+.journey__restore {
   color: var(--muted);
   background: none;
   border: 0;
@@ -230,3 +233,21 @@
 .practice > a > span:first-child { display: flex; flex-direction: column; gap: 2px; }
 .practice__title { font-size: 16px; font-weight: 600; }
 .practice > a:hover .practice__title { text-decoration: underline; text-underline-offset: 4px; text-decoration-color: var(--line); }
+
+.journey__restore {
+  position: relative;
+}
+.journey__restore input {
+  position: absolute;
+  inset: 0;
+  opacity: 0;
+  cursor: pointer;
+}
+.journey__restore:focus-within {
+  outline: 2px solid var(--lime);
+  outline-offset: 2px;
+}
+.journey__profile {
+  font-size: 11px;
+  text-align: center;
+}

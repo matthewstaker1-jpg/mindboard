@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import { Chess } from 'chess.js';
 import { allStudyPositions, ENDGAMES } from '../chess/positions';
-import { emptyProgress, effectiveElo, withEngineResult, withFollowRound, withTodayDone } from '../progress/progress';
+import { emptyProgress, effectiveElo, engineOffset, withEngineResult, withFollowRound, withTodayDone } from '../progress/progress';
 import type { PlayedMove } from './fogGame';
 import { biggestMistakes, formatEval, povCp } from './review';
 
@@ -44,14 +44,16 @@ describe('study positions', () => {
 });
 
 describe('progress for the new modes', () => {
-  it('moves the engine up after wins and down after losses, within limits', () => {
+  it('moves the engine up after wins and down after losses, within limits, per level', () => {
     let p = emptyProgress();
-    p = withEngineResult(p, 'win');
-    p = withEngineResult(p, 'win');
-    p = withEngineResult(p, 'draw');
-    expect(p.engineOffset).toBe(80);
-    for (let i = 0; i < 30; i++) p = withEngineResult(p, 'loss');
-    expect(p.engineOffset).toBe(-400);
+    p = withEngineResult(p, 'fog-2', 'win');
+    p = withEngineResult(p, 'fog-2', 'win');
+    p = withEngineResult(p, 'fog-2', 'draw');
+    expect(engineOffset(p, 'fog-2')).toBe(80);
+    for (let i = 0; i < 30; i++) p = withEngineResult(p, 'blind', 'loss');
+    expect(engineOffset(p, 'blind')).toBe(-400);
+    // A loss on one level leaves the others alone.
+    expect(engineOffset(p, 'fog-2')).toBe(80);
     expect(effectiveElo(800, -400)).toBe(600);
     expect(effectiveElo(1300, 80)).toBe(1380);
   });

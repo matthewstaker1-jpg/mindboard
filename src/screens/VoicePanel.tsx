@@ -7,28 +7,13 @@ import { type GameState, type PlayerMoveResult, replay } from '../game/fogGame';
 import { parseCommand } from '../voice/commands';
 import { type Alternative, matchSpokenMove } from '../voice/moveMatcher';
 import { Speaker, WebSpeechRecogniser } from '../voice/recogniser';
+import { usePref } from '../progress/store';
 import './VoicePanel.css';
 
 /** How long you have to say "no" after a move is read back. */
 const CANCEL_MS = 1500;
 /** Board questions cost peek time, so they can't replace remembering. */
 const QUERY_COST_MS = { where: 3000, whatsOn: 3000, list: 6000 };
-
-const PREF = 'mindboard.voice';
-function voicePref(): boolean {
-  try {
-    return localStorage.getItem(PREF) === 'on';
-  } catch {
-    return false;
-  }
-}
-function setVoicePref(on: boolean) {
-  try {
-    localStorage.setItem(PREF, on ? 'on' : 'off');
-  } catch {
-    // Not remembered this time; the switch still works.
-  }
-}
 
 export interface VoicePanelProps {
   game: GameState;
@@ -46,7 +31,7 @@ const nameOf = (c: 'w' | 'b') => (c === 'w' ? 'White' : 'Black');
 
 /** Hands-free play: say moves, hear them read back and hear the engine's replies. */
 export function VoicePanel({ game, fen, yourTurn, onMove, onTakeBack, onResign, onPeekSpend }: VoicePanelProps) {
-  const [on, setOn] = useState(voicePref);
+  const [on, setOn] = usePref('voice');
   const [listening, setListening] = useState(false);
   const [heard, setHeard] = useState<string | null>(null);
   const [status, setStatus] = useState<string | null>(null);
@@ -245,7 +230,6 @@ export function VoicePanel({ game, fen, yourTurn, onMove, onTakeBack, onResign, 
         onClick={() => {
           const v = !on;
           setOn(v);
-          setVoicePref(v);
           if (v) void say(yourTurn ? 'Voice on. Your move.' : 'Voice on.');
           else speaker.current.cancel();
         }}

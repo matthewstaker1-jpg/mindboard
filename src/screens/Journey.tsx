@@ -2,9 +2,9 @@ import { useState } from 'react';
 import { Board, type Highlight } from '../board/Board';
 import { EMPTY_FEN, type Orientation, type Square } from '../board/squares';
 import { ALL_LEVELS, STAGE_NAMES, isGameLevel, levelHref } from '../levels/all';
-import { currentLevelIndex, dayKey, displayStreak, effectiveElo, isPassed, isUnlocked, levelsPassed } from '../progress/progress';
+import { currentLevelIndex, dayKey, displayStreak, effectiveElo, engineOffset, isPassed, isUnlocked, levelsPassed, type Progress } from '../progress/progress';
 import { weakestSquares } from '../progress/stats';
-import { resetProgress, useProgress } from '../progress/store';
+import { currentProfile, exportProgress, importProgress, resetProgress, useProgress } from '../progress/store';
 import './Journey.css';
 
 export function Journey() {
@@ -81,7 +81,7 @@ export function Journey() {
             </div>
             {isGameLevel(level) && (
               <p className="hero__game mono">
-                vs engine ≈{effectiveElo(level.engineElo, progress.engineOffset)} · {progress.levels[level.id]?.passRun ?? 0}/{level.pass.gamesInARow} passing games in a row
+                vs engine ≈{effectiveElo(level.engineElo, engineOffset(progress, level.id))} · {progress.levels[level.id]?.passRun ?? 0}/{level.pass.gamesInARow} passing games in a row
               </p>
             )}
             <a className="btn btn--primary btn--block hero__go" href={levelHref(level)}>
@@ -211,6 +211,24 @@ export function Journey() {
 
       <footer className="journey__foot">
         <a href="#/gallery">Board gallery</a>
+        <button type="button" onClick={() => downloadBackup(progress)}>
+          Back up
+        </button>
+        <label className="journey__restore">
+          Restore
+          <input
+            type="file"
+            accept="application/json,.json"
+            onChange={async (e) => {
+              const file = e.target.files?.[0];
+              e.target.value = '';
+              if (!file) return;
+              if (!window.confirm('Replace your progress with this backup?')) return;
+              const err = importProgress(await file.text());
+              window.alert(err ?? 'Progress restored.');
+            }}
+          />
+        </label>
         <button
           type="button"
           onClick={() => {
@@ -220,6 +238,16 @@ export function Journey() {
           Reset progress
         </button>
       </footer>
+      {currentProfile() && <p className="mono muted journey__profile">Profile: {currentProfile()} (separate from your real progress)</p>}
     </div>
   );
+}
+
+function downloadBackup(p: Progress) {
+  const blob = new Blob([exportProgress(p)], { type: 'application/json' });
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = `mindboard-backup-${dayKey(new Date())}.json`;
+  a.click();
+  setTimeout(() => URL.revokeObjectURL(a.href), 1000);
 }

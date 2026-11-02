@@ -9,7 +9,7 @@ import { type PlayerMoveResult, fenOf, gamePasses, newGame, turnOf } from '../..
 import { povCp } from '../../game/review';
 import { initialScreen, makeScreenReducer } from '../../game/screenState';
 import type { GameLevel } from '../../levels/games';
-import { effectiveElo, withAnswer, withGame, withStudy } from '../../progress/progress';
+import { effectiveElo, engineOffset, withAnswer, withGame, withStudy } from '../../progress/progress';
 import { useProgress } from '../../progress/store';
 
 const MIN_ENGINE_MS = 600;
@@ -34,7 +34,7 @@ export function useFogGame(level: GameLevel, scenario?: StudyPosition) {
   const toMove = turnOf(game);
   const yourTurn = !studying && !game.result && !game.pendingRecall && toMove === game.color;
   const engineTurn = !studying && !game.result && !game.pendingRecall && toMove !== game.color;
-  const elo = effectiveElo(level.engineElo, progress?.engineOffset ?? 0);
+  const elo = effectiveElo(level.engineElo, progress ? engineOffset(progress, level.id) : 0);
   const orientation = game.color === 'w' ? 'white' : 'black';
 
   // Engine replies whenever it's its turn.
