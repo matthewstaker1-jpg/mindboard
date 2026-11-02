@@ -4,6 +4,9 @@
   "version": "0.0.0",
   "type": "module",
   "scripts": {
+    "postinstall": "node scripts/copy-engine.mjs",
+    "predev": "node scripts/copy-engine.mjs",
+    "prebuild": "node scripts/copy-engine.mjs",
     "dev": "vite",
     "build": "tsc --noEmit && vite build",
     "preview": "vite preview",
@@ -17,7 +20,8 @@
     "chess.js": "^1.4.0",
     "idb-keyval": "^6.3.0",
     "react": "^18.3.1",
-    "react-dom": "^18.3.1"
+    "react-dom": "^18.3.1",
+    "stockfish": "^17.1.0"
   },
   "devDependencies": {
     "@testing-library/dom": "^10.4.2",

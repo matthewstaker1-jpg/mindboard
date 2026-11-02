@@ -17,7 +17,14 @@ export default defineConfig({
         display: 'standalone',
         icons: [{ src: 'icon.svg', sizes: 'any', type: 'image/svg+xml', purpose: 'any' }],
       },
-      workbox: { globPatterns: ['**/*.{js,css,html,svg,woff2}'] },
+      workbox: {
+        globPatterns: ['**/*.{js,css,html,svg,woff2}'],
+        // The engine is ~7 MB; cache it on first use instead of precaching.
+        globIgnores: ['engine/**'],
+        runtimeCaching: [
+          { urlPattern: /\/engine\//, handler: 'CacheFirst', options: { cacheName: 'engine' } },
+        ],
+      },
     }),
   ],
   test: {
