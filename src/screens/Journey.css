@@ -1,0 +1,195 @@
+.journey { gap: 22px; }
+
+.journey__top {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+.journey__brand {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  font: 700 17px var(--font-mono);
+  letter-spacing: 0.24em;
+}
+.journey__logo {
+  width: 44px;
+  height: 44px;
+  border-radius: 12px;
+  background: var(--lime);
+  color: var(--ground);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.journey__streak {
+  height: 40px;
+  padding: 0 16px;
+  font-size: 15px;
+  color: var(--amber);
+}
+
+.hero {
+  padding: 22px 20px 20px;
+  border-radius: 22px;
+  background: var(--surface);
+  border: 1px solid var(--line);
+}
+.hero h1 {
+  margin: 8px 0 8px;
+  font-size: 30px;
+  font-weight: 700;
+  letter-spacing: -0.01em;
+}
+.hero__blurb {
+  margin: 0 0 18px;
+  font-size: 16px;
+  line-height: 1.45;
+  color: var(--muted);
+}
+.hero__segs {
+  display: flex;
+  gap: 5px;
+}
+.hero__segs span {
+  flex: 1;
+  height: 10px;
+  border-radius: 4px;
+  background: var(--line);
+}
+.hero__segs span[data-on] { background: var(--lime); }
+.hero__segs span[data-cur]:not([data-on]) { box-shadow: inset 0 0 0 2px var(--lime); }
+.hero__meta {
+  display: flex;
+  justify-content: space-between;
+  margin: 10px 0 18px;
+  font: 500 11px var(--font-mono);
+  letter-spacing: 0.1em;
+  color: var(--muted);
+}
+.hero__meta span:last-child { color: var(--text); font-weight: 700; }
+.hero__go { height: 56px; font-size: 18px; border-radius: 16px; }
+
+.card {
+  padding: 18px 18px 20px;
+  border-radius: 20px;
+  background: var(--surface);
+  border: 1px solid var(--line);
+}
+.card__head {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 14px;
+}
+.card__head h2 {
+  margin: 0;
+  font-size: 20px;
+  font-weight: 600;
+}
+
+.seg {
+  display: flex;
+  padding: 3px;
+  border-radius: 10px;
+  background: var(--ground);
+  border: 1px solid var(--line);
+}
+.seg button {
+  height: 28px;
+  padding: 0 12px;
+  border: 0;
+  border-radius: 7px;
+  background: transparent;
+  color: var(--muted);
+  font: 600 13px var(--font-ui);
+  cursor: pointer;
+}
+.seg button[data-on] { background: var(--line); color: var(--text); }
+
+.weak__empty { margin: 0; font-size: 14px; line-height: 1.5; }
+.weak__body {
+  display: grid;
+  grid-template-columns: 1fr 120px;
+  gap: 16px;
+  align-items: center;
+}
+.weak__board .board { box-shadow: none; border-radius: 8px; }
+.weak__list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+.weak__list li {
+  display: grid;
+  grid-template-columns: 34px 1fr auto;
+  gap: 6px;
+  font-size: 13px;
+}
+.weak__sq { color: var(--amber); font-weight: 700; font-size: 15px; }
+
+.path .card__head { margin-bottom: 6px; }
+.path__stage-name { margin: 14px 0 4px; }
+.path ol {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+.path li > a,
+.path li > div {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 8px 0;
+  color: inherit;
+  text-decoration: none;
+}
+.path li > a:hover .path__title { text-decoration: underline; text-decoration-color: var(--line); text-underline-offset: 4px; }
+.path__node {
+  flex: none;
+  width: 34px;
+  height: 34px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 2px solid #3a3f4a;
+}
+.path__node[data-state='done'] { background: var(--lime); border-color: var(--lime); color: var(--ground); }
+.path__node[data-state='cur'] { border-color: var(--lime); }
+.path__node[data-state='cur']::after {
+  content: '';
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  background: var(--lime);
+}
+.path__node[data-state='open'] { border-color: var(--muted); }
+.path__title { flex: 1; font-size: 17px; font-weight: 500; }
+.path li[data-state='cur'] .path__title { font-weight: 700; }
+.path li[data-state='lock'] .path__title { color: #8a909b; }
+.path__meta { font-size: 13px; color: #8a909b; }
+.path li[data-state='cur'] .path__meta { color: var(--lime); }
+.path__later { margin-top: 14px !important; padding-top: 10px !important; border-top: 1px dashed var(--line) !important; }
+.path__goal { color: var(--amber); font-weight: 700; }
+
+.journey__foot {
+  display: flex;
+  justify-content: space-between;
+  padding-top: 8px;
+  font-size: 13px;
+}
+.journey__foot a,
+.journey__foot button {
+  color: var(--muted);
+  background: none;
+  border: 0;
+  padding: 0;
+  font: inherit;
+  cursor: pointer;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}

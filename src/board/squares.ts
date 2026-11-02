@@ -100,3 +100,22 @@ export function parsePlacement(fen: string): Map<Square, Piece> {
 }
 
 export const EMPTY_FEN = '8/8/8/8/8/8/8/8';
+
+/** Build a placement-only FEN from a square → piece map (e.g. a lone knight). */
+export function placementFen(pieces: Partial<Record<Square, Piece>>): string {
+  const rows: string[] = [];
+  for (let r = 8; r >= 1; r--) {
+    let row = '';
+    let empty = 0;
+    for (const f of FILES) {
+      const p = pieces[`${f}${r}` as Square];
+      if (p) {
+        if (empty) row += empty;
+        row += p;
+        empty = 0;
+      } else empty++;
+    }
+    rows.push(row + (empty ? empty : ''));
+  }
+  return rows.join('/');
+}

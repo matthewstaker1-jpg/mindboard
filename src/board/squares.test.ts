@@ -6,6 +6,7 @@ import {
   isSquare,
   mirrorSquare,
   parsePlacement,
+  placementFen,
   screenPos,
   squareAt,
   squaresInScreenOrder,
@@ -108,6 +109,13 @@ describe('parsePlacement', () => {
     expect(p.get('c5')).toBe('b');
     expect(p.get('c3')).toBe('P');
     expect(p.get('g8')).toBeUndefined();
+  });
+
+  it('round-trips through placementFen', () => {
+    expect(placementFen({})).toBe(EMPTY_FEN);
+    expect(placementFen({ b1: 'N' })).toBe('8/8/8/8/8/8/8/1N6');
+    const fen = 'r1bqk2r/pppp1ppp/2n2n2/2b1p3/2B1P3/2P2N2/PP1P1PPP/RNBQK2R';
+    expect(placementFen(Object.fromEntries(parsePlacement(fen)))).toBe(fen);
   });
 
   it('reads an empty board', () => {

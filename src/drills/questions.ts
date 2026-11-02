@@ -19,6 +19,8 @@ export interface Bonus {
   prompt: string;
   options: string[];
   answer: string;
+  /** Where the right answer's piece stands, if it is a piece. */
+  answerSquare: Square | null;
 }
 
 interface Base {
@@ -103,6 +105,7 @@ export function makeBonus(move: BankMove, rng: Rng): Bonus | null {
     prompt: `Bonus: what does your ${name} attack now?`,
     options: shuffle([right, ...wrong.slice(0, 3)], rng),
     answer: right,
+    answerSquare: target?.square ?? null,
   };
 }
 

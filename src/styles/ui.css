@@ -1,0 +1,83 @@
+/* App shell and shared pieces. Screens are designed phone-first; on a laptop
+   they sit in a centred column. */
+
+.app {
+  max-width: 460px;
+  min-height: 100dvh;
+  margin: 0 auto;
+  padding: 18px 20px 28px;
+  display: flex;
+  flex-direction: column;
+}
+
+.mono { font-family: var(--font-mono); }
+.muted { color: var(--muted); }
+
+.btn {
+  height: 52px;
+  padding: 0 20px;
+  border-radius: 14px;
+  border: 1px solid var(--line);
+  background: transparent;
+  color: var(--text);
+  font: 600 16px var(--font-ui);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  cursor: pointer;
+  text-decoration: none;
+}
+.btn:hover { border-color: #3a3f4a; }
+.btn--primary {
+  background: var(--lime);
+  border-color: var(--lime);
+  color: var(--ground);
+  font-weight: 700;
+}
+.btn--primary:hover { filter: brightness(1.06); border-color: var(--lime); }
+.btn--block { width: 100%; }
+
+.icon-btn {
+  width: 44px;
+  height: 44px;
+  flex: none;
+  border-radius: 12px;
+  background: var(--surface);
+  color: var(--text);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  height: 32px;
+  padding: 0 12px;
+  border-radius: 999px;
+  border: 1px solid var(--line);
+  font: 700 12px var(--font-mono);
+  letter-spacing: 0.04em;
+}
+
+.eyebrow {
+  font: 500 11px var(--font-mono);
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+
+.bar {
+  height: 6px;
+  border-radius: 3px;
+  background: var(--line);
+  overflow: hidden;
+}
+.bar > div {
+  height: 100%;
+  border-radius: 3px;
+  background: var(--lime);
+  transition: width 0.25s ease;
+}
