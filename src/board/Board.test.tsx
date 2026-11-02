@@ -150,5 +150,15 @@ describe('Board', () => {
       fireEvent.pointerUp(board, at('e4'));
       expect(onMove).not.toHaveBeenCalled();
     });
+  
+    it('moves a piece you cannot see by clicking its square, then the target', () => {
+      const { board, onMove, at, container } = setup({ hidden: () => 'gone', canSelect: () => true });
+      fireEvent.pointerDown(board, at('g1'));
+      fireEvent.pointerUp(board, at('g1'));
+      expect(cell(container, 'g1').hasAttribute('data-selected')).toBe(true);
+      expect(cell(container, 'g1').querySelector('.board__piece')).toBeNull();
+      fireEvent.pointerDown(board, at('e2'));
+      expect(onMove).toHaveBeenCalledWith('g1', 'e2');
+    });
   });
 });

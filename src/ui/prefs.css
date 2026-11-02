@@ -1,0 +1,41 @@
+.coords-toggle {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  height: 32px;
+  padding: 0 10px 0 12px;
+  border-radius: 999px;
+  border: 1px solid var(--line);
+  background: transparent;
+  color: var(--muted);
+  cursor: pointer;
+  flex: none;
+}
+.coords-toggle:disabled { opacity: 0.45; cursor: default; }
+.coords-toggle__label {
+  font: 700 12px var(--font-mono);
+  letter-spacing: 0.04em;
+}
+.coords-toggle__track {
+  position: relative;
+  width: 30px;
+  height: 18px;
+  border-radius: 9px;
+  background: var(--line);
+  transition: background 0.15s;
+}
+.coords-toggle__track[data-on] { background: var(--lime); }
+.coords-toggle__thumb {
+  position: absolute;
+  top: 2px;
+  left: 2px;
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  background: var(--text);
+  transition: transform 0.15s;
+}
+.coords-toggle__track[data-on] .coords-toggle__thumb {
+  transform: translateX(12px);
+  background: var(--ground);
+}

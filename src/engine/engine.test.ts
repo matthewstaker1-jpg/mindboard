@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { Engine, UCI_ELO_MIN, parseBestMove, parseInfoScore, strengthFor, type UciWorker } from './engine';
+import { Engine, UCI_ELO_MIN, parseBestMove, parseInfoPv, parseInfoScore, strengthFor, type UciWorker } from './engine';
 
 /** A scripted stand-in for the Stockfish worker that records commands. */
 function fakeWorker(reply: (cmd: string) => string[]) {
@@ -31,6 +31,9 @@ describe('UCI parsing', () => {
     expect(parseBestMove('bestmove e2e4 ponder e7e5')).toBe('e2e4');
     expect(parseBestMove('bestmove (none)')).toBeNull();
     expect(parseBestMove('info depth 1')).toBeUndefined();
+    expect(parseInfoPv('info depth 3 multipv 2 score cp 10 pv c7c5 g1f3')).toEqual({ index: 2, move: 'c7c5' });
+    expect(parseInfoPv('info depth 3 score cp 10 pv e7e5')).toEqual({ index: 1, move: 'e7e5' });
+    expect(parseInfoPv('info depth 3 score cp 10 upperbound pv e7e5')).toBeNull();
   });
 });
 
@@ -41,9 +44,11 @@ describe('strength', () => {
     expect(strong.options).toContainEqual(['UCI_LimitStrength', 'true']);
     const weak = strengthFor(800);
     expect(weak.options).toContainEqual(['UCI_LimitStrength', 'false']);
-    expect(weak.go).toMatch(/depth 2/);
-    const skill = (e: number) => Number(strengthFor(e).options.find(([n]) => n === 'Skill Level')![1]);
-    expect(skill(800)).toBeLessThan(skill(1200));
+    expect(weak.options).toContainEqual(['Skill Level', '0']);
+    expect(weak.go).toBe('go depth 1');
+    expect(strengthFor(1200).go).toBe('go depth 3');
+    expect(strengthFor(800).mistakeRate).toBeGreaterThan(strengthFor(1200).mistakeRate);
+    expect(strong.mistakeRate).toBe(0);
     expect(strengthFor(UCI_ELO_MIN).options).toContainEqual(['UCI_Elo', String(UCI_ELO_MIN)]);
   });
 });
@@ -55,9 +60,22 @@ describe('Engine', () => {
     const r = await e.bestMove('rnbqkbnr/pppppppp/8/8/4P3/8/PPPP1PPP/RNBQKBNR b KQkq - 0 1', 900);
     expect(r).toEqual({ best: 'e7e5', score: { cp: 35 } });
     expect(sent[0]).toBe('uci');
-    expect(sent).toContain('setoption name Skill Level value 3');
+    expect(sent).toContain('setoption name Skill Level value 0');
     await e.bestMove('rnbqkbnr/pppppppp/8/8/4P3/8/PPPP1PPP/RNBQKBNR b KQkq - 0 1', 900);
     expect(sent.filter((c) => c.startsWith('setoption name Skill Level')).length).toBe(1);
+  });
+
+  it('sometimes plays another top candidate at low strength, never at high', async () => {
+    const multi = (cmd: string) =>
+      cmd.startsWith('go')
+        ? ['info depth 1 multipv 1 score cp 40 pv e7e5', 'info depth 1 multipv 2 score cp 20 pv c7c5', 'bestmove e7e5']
+        : stockfishLike(cmd);
+    const fen = 'rnbqkbnr/pppppppp/8/8/4P3/8/PPPP1PPP/RNBQKBNR b KQkq - 0 1';
+    const slips = new Engine(() => fakeWorker(multi).w, () => 0); // always under the mistake rate
+    expect((await slips.bestMove(fen, 800)).best).toBe('c7c5');
+    expect((await slips.bestMove(fen, 1600)).best).toBe('e7e5');
+    const steady = new Engine(() => fakeWorker(multi).w, () => 0.99);
+    expect((await steady.bestMove(fen, 800)).best).toBe('e7e5');
   });
 
   it('runs searches one at a time', async () => {

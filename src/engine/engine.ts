@@ -29,32 +29,41 @@ export interface Strength {
   options: [string, string][];
   /** How the search is limited. */
   go: string;
+  /** Chance of playing one of the other top candidate moves instead of the best. */
+  mistakeRate: number;
 }
+
+/** Candidate moves considered when the engine is allowed to slip. */
+const CANDIDATES = 4;
 
 /**
  * Map a target rating to engine settings. From 1320 up Stockfish limits
- * itself; below that, a low Skill Level plus a shallow, quick search makes
- * it miss things the way a club beginner does.
+ * itself. Even its lowest Skill Level plays at roughly that strength, so
+ * below 1320 it searches very shallowly and sometimes picks one of its other
+ * top candidates: plausible beginner mistakes rather than random blunders.
  */
 export function strengthFor(elo: number): Strength {
   if (elo >= UCI_ELO_MIN) {
     return {
       options: [
+        ['MultiPV', '1'],
         ['Skill Level', '20'],
         ['UCI_LimitStrength', 'true'],
         ['UCI_Elo', String(Math.min(3190, Math.round(elo)))],
       ],
       go: 'go movetime 400',
+      mistakeRate: 0,
     };
   }
-  const skill = Math.max(0, Math.min(8, Math.round((elo - 600) / 90)));
-  const depth = elo < 900 ? 2 : elo < 1100 ? 4 : 6;
+  const depth = elo < 900 ? 1 : elo < 1100 ? 2 : 3;
   return {
     options: [
+      ['MultiPV', String(CANDIDATES)],
       ['UCI_LimitStrength', 'false'],
-      ['Skill Level', String(skill)],
+      ['Skill Level', '0'],
     ],
-    go: `go depth ${depth} movetime 300`,
+    go: `go depth ${depth}`,
+    mistakeRate: Math.min(0.5, Math.max(0, (UCI_ELO_MIN - elo) / 1000)),
   };
 }
 
@@ -62,6 +71,15 @@ export function parseInfoScore(line: string): Score | null {
   const m = line.match(/\bscore (cp|mate) (-?\d+)/);
   if (!m) return null;
   return m[1] === 'cp' ? { cp: Number(m[2]) } : { mate: Number(m[2]) };
+}
+
+/** "info ... multipv 2 ... pv e2e4 e7e5" → { index: 2, move: 'e2e4' }. */
+export function parseInfoPv(line: string): { index: number; move: string } | null {
+  if (!line.startsWith('info') || / (upper|lower)bound/.test(line)) return null;
+  const pv = line.match(/ pv (\S+)/);
+  if (!pv) return null;
+  const mp = line.match(/ multipv (\d+)/);
+  return { index: mp ? Number(mp[1]) : 1, move: pv[1]! };
 }
 
 export function parseBestMove(line: string): string | null | undefined {
@@ -81,7 +99,10 @@ export class Engine {
   private booted: Promise<void>;
   private appliedOptions = new Map<string, string>();
 
-  constructor(make: () => UciWorker = defaultWorker) {
+  constructor(
+    make: () => UciWorker = defaultWorker,
+    private rng: () => number = Math.random,
+  ) {
     this.worker = make();
     this.worker.onmessage = (e) => {
       const text = typeof e.data === 'string' ? e.data : String(e.data);
@@ -131,21 +152,28 @@ export class Engine {
     if (changed) await this.isReady();
   }
 
-  private async search(fen: string, go: string): Promise<SearchResult> {
+  private async search(fen: string, go: string, mistakeRate = 0): Promise<SearchResult> {
     await this.send(`position fen ${fen}`);
     let score: Score = {};
     let best: string | null = null;
+    const candidates = new Map<number, string>();
     await this.send(
       go,
       (l) => parseBestMove(l) !== undefined,
       (l) => {
-        if (l.startsWith('info') && !l.includes(' upperbound') && !l.includes(' lowerbound')) {
-          score = parseInfoScore(l) ?? score;
+        const pv = parseInfoPv(l);
+        if (pv) {
+          candidates.set(pv.index, pv.move);
+          if (pv.index === 1) score = parseInfoScore(l) ?? score;
         }
         const b = parseBestMove(l);
         if (b !== undefined) best = b;
       },
     );
+    const others = [...candidates.entries()].filter(([i, m]) => i > 1 && m !== best).map(([, m]) => m);
+    if (best && others.length && this.rng() < mistakeRate) {
+      best = others[Math.floor(this.rng() * others.length)]!;
+    }
     return { best, score };
   }
 
@@ -154,7 +182,7 @@ export class Engine {
     return this.enqueue(async () => {
       const s = strengthFor(elo);
       await this.setOptions(s.options);
-      return this.search(fen, s.go);
+      return this.search(fen, s.go, s.mistakeRate);
     });
   }
 
@@ -162,6 +190,7 @@ export class Engine {
   evaluate(fen: string, depth = 12): Promise<SearchResult> {
     return this.enqueue(async () => {
       await this.setOptions([
+        ['MultiPV', '1'],
         ['UCI_LimitStrength', 'false'],
         ['Skill Level', '20'],
       ]);

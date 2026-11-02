@@ -2,6 +2,8 @@ import { useEffect, useState } from 'react';
 import { Gallery } from './gallery/Gallery';
 import { Journey } from './screens/Journey';
 import { Drill } from './screens/Drill';
+import { FogGame } from './screens/FogGame';
+import { gameLevelById } from './levels/games';
 import { levelById } from './levels/ladder';
 
 function useHashRoute(): string {
@@ -24,5 +26,8 @@ export function App() {
   const level = drill ? levelById(drill[1]!) : undefined;
   // Keying by route gives each level a fresh drill.
   if (level) return <Drill key={route} level={level} />;
+  const game = route.match(/^\/game\/([\w-]+)$/);
+  const gameLevel = game ? gameLevelById(game[1]!) : undefined;
+  if (gameLevel) return <FogGame key={route} level={gameLevel} />;
   return <Journey />;
 }

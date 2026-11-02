@@ -193,3 +193,8 @@
   text-decoration: underline;
   text-underline-offset: 3px;
 }
+.hero__game {
+  margin: -6px 0 16px;
+  font-size: 12px;
+  color: var(--muted);
+}

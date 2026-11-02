@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { Board, type Highlight } from '../board/Board';
 import { EMPTY_FEN, type Orientation, type Square } from '../board/squares';
-import { LADDER, STAGE_NAMES } from '../levels/ladder';
+import { ALL_LEVELS, STAGE_NAMES, isGameLevel, levelHref } from '../levels/all';
 import { currentLevelIndex, displayStreak, isPassed, isUnlocked, levelsPassed } from '../progress/progress';
 import { weakestSquares } from '../progress/stats';
 import { resetProgress, useProgress } from '../progress/store';
@@ -13,10 +13,10 @@ export function Journey() {
   if (!progress) return <div className="app" />;
 
   const cur = currentLevelIndex(progress);
-  const allDone = cur >= LADDER.length;
-  const level = LADDER[Math.min(cur, LADDER.length - 1)]!;
+  const allDone = cur >= ALL_LEVELS.length;
+  const level = ALL_LEVELS[Math.min(cur, ALL_LEVELS.length - 1)]!;
   const streak = displayStreak(progress, new Date());
-  const stageLevels = LADDER.filter((l) => l.stage === level.stage);
+  const stageLevels = ALL_LEVELS.filter((l) => l.stage === level.stage);
   const weak = weakestSquares(progress.stats, side, 5);
   const hl: Partial<Record<Square, Highlight>> = {};
   for (const w of weak) hl[w.square] = 'warn';
@@ -45,9 +45,9 @@ export function Journey() {
       <section className="hero">
         {allDone ? (
           <>
-            <p className="eyebrow">Stages 1–2 complete</p>
-            <h1>Notation trainer done</h1>
-            <p className="hero__blurb">Next comes fading the board against an engine. Replay any level below to keep sharp.</p>
+            <p className="eyebrow">Every level passed</p>
+            <h1>Full blindfold</h1>
+            <p className="hero__blurb">Headphones mode comes next. Replay any level below to keep sharp.</p>
           </>
         ) : (
           <>
@@ -66,10 +66,15 @@ export function Journey() {
             <div className="hero__meta">
               <span>LEVELS PASSED</span>
               <span>
-                {levelsPassed(progress)} / {LADDER.length}
+                {levelsPassed(progress)} / {ALL_LEVELS.length}
               </span>
             </div>
-            <a className="btn btn--primary btn--block hero__go" href={`#/drill/${level.id}`}>
+            {isGameLevel(level) && (
+              <p className="hero__game mono">
+                vs engine ≈{level.engineElo} · {progress.levels[level.id]?.passRun ?? 0}/{level.pass.gamesInARow} passing games in a row
+              </p>
+            )}
+            <a className="btn btn--primary btn--block hero__go" href={levelHref(level)}>
               {progress.levels[level.id]?.attempts ? 'Continue' : 'Start'} →
             </a>
           </>
@@ -114,20 +119,21 @@ export function Journey() {
         <div className="card__head">
           <h2>Your path</h2>
           <span className="eyebrow">
-            {levelsPassed(progress)} / {LADDER.length} levels
+            {levelsPassed(progress)} / {ALL_LEVELS.length} levels
           </span>
         </div>
-        {[1, 2].map((stage) => (
+        {[1, 2, 3, 4].map((stage) => (
           <div key={stage} className="path__stage">
             <p className="eyebrow path__stage-name">
               Stage {stage} · {STAGE_NAMES[stage]}
             </p>
             <ol>
-              {LADDER.map((l, i) => {
+              {ALL_LEVELS.map((l, i) => {
                 if (l.stage !== stage) return null;
                 const passed = isPassed(progress, l.id);
                 const open = isUnlocked(progress, i);
-                const best = progress.levels[l.id]?.best;
+                const rec = progress.levels[l.id];
+                const best = rec?.best;
                 const state = passed ? 'done' : i === cur ? 'cur' : open ? 'open' : 'lock';
                 const body = (
                   <>
@@ -139,12 +145,14 @@ export function Journey() {
                       )}
                     </span>
                     <span className="path__title">{l.title}</span>
-                    <span className="mono path__meta">{best ? `${best.correct}/${best.total}` : ''}</span>
+                    <span className="mono path__meta">
+                      {best ? `${best.correct}/${best.total}` : rec?.games ? `${rec.games.win}W ${rec.games.draw}D ${rec.games.loss}L` : ''}
+                    </span>
                   </>
                 );
                 return (
                   <li key={l.id} data-state={state}>
-                    {open ? <a href={`#/drill/${l.id}`}>{body}</a> : <div>{body}</div>}
+                    {open ? <a href={levelHref(l)}>{body}</a> : <div>{body}</div>}
                   </li>
                 );
               })}
@@ -152,15 +160,13 @@ export function Journey() {
           </div>
         ))}
         <ol className="path__later">
-          {['Fog · pieces fade', 'Ghost army', 'Dark board', 'Full blindfold', 'Headphones mode'].map((t, i, a) => (
-            <li key={t} data-state="lock">
-              <div>
-                <span className="path__node" data-state="lock" />
-                <span className="path__title">{t}</span>
-                <span className="mono path__meta path__goal">{i === a.length - 1 ? 'GOAL' : ''}</span>
-              </div>
-            </li>
-          ))}
+          <li data-state="lock">
+            <div>
+              <span className="path__node" data-state="lock" />
+              <span className="path__title">Headphones mode</span>
+              <span className="mono path__meta path__goal">GOAL</span>
+            </div>
+          </li>
         </ol>
       </section>
 

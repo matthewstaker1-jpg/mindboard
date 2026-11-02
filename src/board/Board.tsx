@@ -36,6 +36,11 @@ export interface BoardProps {
   onMove?: (from: Square, to: Square) => void;
   /** Which visible pieces may be picked up (default: all). Only used with onMove. */
   canDrag?: (sq: Square, piece: Piece) => boolean;
+  /**
+   * Squares that can be clicked as a move's starting square even though no
+   * piece shows there — for moving pieces you can't see. Only used with onMove.
+   */
+  canSelect?: (sq: Square) => boolean;
   tone?: BoardTone;
   className?: string;
   label?: string;
@@ -83,6 +88,7 @@ export function Board({
   onTap,
   onMove,
   canDrag,
+  canSelect,
   tone = 'standard',
   className,
   label = 'Chess board',
@@ -113,11 +119,14 @@ export function Board({
     const { x, y, sq } = local(e);
     if (!sq) return;
     const piece = movable(sq);
-    const held = selected ? pieces.get(selected) : undefined;
-    // With a piece already picked up, clicking anything but one of its own side is the move.
-    if (held && sq !== selected && !(piece && isWhitePiece(piece) === isWhitePiece(held))) {
+    const held = selected ? movable(selected) : null;
+    // With a square already picked, clicking anything but another piece of the same side is the move.
+    if (selected && sq !== selected && !(piece && held && isWhitePiece(piece) === isWhitePiece(held))) {
       setSelected(null);
-      onMove(selected!, sq);
+      onMove(selected, sq);
+    } else if (!piece && canSelect?.(sq)) {
+      // A square with no visible piece: pick it by click only (nothing to drag).
+      setSelected(selected === sq ? null : { sq, fen });
     } else if (piece) {
       e.preventDefault();
       rootRef.current!.setPointerCapture?.(e.pointerId);

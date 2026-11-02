@@ -5,10 +5,12 @@ import { PIECE_NAME, numberedSan } from '../chess/game';
 import { normaliseSanAnswer } from '../chess/notation';
 import { type Question, expectedAnswer } from '../drills/questions';
 import { type SessionState, isFinished, newSession, nextQuestion, submitAnswer, summarise } from '../drills/session';
-import { LADDER, type LevelDef, type SessionSummary, levelNumber, passes } from '../levels/ladder';
+import { ALL_LEVELS, levelHref } from '../levels/all';
+import { type LevelDef, type SessionSummary, levelNumber, passes } from '../levels/ladder';
 import { withAnswer, withSession } from '../progress/progress';
 import { useProgress } from '../progress/store';
 import { NotationKeyboard, SquareKeypad, useKeys } from '../ui/keypads';
+import { CoordsToggle, useCoordsPref } from '../ui/prefs';
 import './Drill.css';
 
 type Phase = 'ask' | 'feedback' | 'done';
@@ -18,6 +20,7 @@ const secs = (ms: number) => `${(ms / 1000).toFixed(1)}s`;
 
 export function Drill({ level }: { level: LevelDef }) {
   const { progress, update } = useProgress();
+  const [coordsOn] = useCoordsPref();
   const [session, setSession] = useState<SessionState>(() => newSession(level));
   const [q, setQ] = useState<Question | null>(null);
   const [phase, setPhase] = useState<Phase>('ask');
@@ -127,16 +130,22 @@ export function Drill({ level }: { level: LevelDef }) {
             BLACK
           </span>
         )}
+        <CoordsToggle allowed={q?.labels ?? level.labels} />
         <span className="drill__run" title="Correct in a row">
           <Flame />×{session.run}
         </span>
       </header>
 
-      {q && <Prompt q={q} />}
+      {q && <Prompt q={q} coordsOn={coordsOn} />}
 
       {q && (
         <div className="drill__board">
-          <Board {...boardFor(q, phase, given, correct)} {...(phase === 'ask' ? boardInput(q, answer) : {})} label="Drill board" />
+          <Board
+            {...boardFor(q, phase, given, correct)}
+            {...(phase === 'ask' ? boardInput(q, answer) : {})}
+            showLabels={q.labels && coordsOn}
+            label="Drill board"
+          />
         </div>
       )}
 
@@ -174,19 +183,19 @@ function Flame() {
   );
 }
 
-function viewNote(q: Question): string {
+function viewNote(q: Question, coordsOn: boolean): string {
   const side = q.orientation === 'white' ? "White's view" : "Black's view";
-  const labels = q.labels ? 'coordinates on' : 'labels off';
+  const labels = q.labels && coordsOn ? 'coordinates on' : 'labels off';
   return `${side} · ${labels} · ${secs(q.targetMs)} target`;
 }
 
-function Prompt({ q }: { q: Question }) {
+function Prompt({ q, coordsOn }: { q: Question; coordsOn: boolean }) {
   switch (q.kind) {
     case 'nameSquare':
       return (
         <div className="prompt">
           <h1>What square is this?</h1>
-          <p>{viewNote(q)}</p>
+          <p>{viewNote(q, coordsOn)}</p>
         </div>
       );
     case 'tapSquare':
@@ -195,7 +204,7 @@ function Prompt({ q }: { q: Question }) {
           <h1>
             Tap <span className="mono">{q.square}</span>
           </h1>
-          <p>{viewNote(q)}</p>
+          <p>{viewNote(q, coordsOn)}</p>
         </div>
       );
     case 'writeMove': {
@@ -434,8 +443,8 @@ function Results({
   onRetry: () => void;
 }) {
   const passed = passes(level, summary);
-  const idx = LADDER.findIndex((l) => l.id === level.id);
-  const nextLevel = LADDER[idx + 1];
+  const idx = ALL_LEVELS.findIndex((l) => l.id === level.id);
+  const nextLevel = ALL_LEVELS[idx + 1];
   const pct = Math.round((summary.correct / summary.total) * 100);
   const need = Math.round(level.pass.minAccuracy * 100);
   return (
@@ -448,7 +457,7 @@ function Results({
         {passed
           ? nextLevel
             ? `Next up: ${nextLevel.title}.`
-            : 'That was the last level of Stages 1–2.'
+            : 'That was the last level.'
           : `You need ${need}%${level.pass.maxMedianMs ? ` and a median under ${secs(level.pass.maxMedianMs)}` : ''} to pass.`}
       </p>
       <div className="results__stats">
@@ -469,7 +478,7 @@ function Results({
       </div>
       <div className="results__actions">
         {passed && nextLevel ? (
-          <a className="btn btn--primary btn--block" href={`#/drill/${nextLevel.id}`}>
+          <a className="btn btn--primary btn--block" href={levelHref(nextLevel)}>
             Next level →
           </a>
         ) : (
