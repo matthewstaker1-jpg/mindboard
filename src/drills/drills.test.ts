@@ -161,3 +161,23 @@ describe('placement', async () => {
     expect(s).toHaveLength(13);
   });
 });
+
+describe('write-the-move prompt', async () => {
+  const { describeWriteMove } = await import('./questions');
+  const { moveBank } = await import('../chess/game');
+
+  it('says which piece a promoting pawn becomes, for every promotion in the bank', () => {
+    const promos = moveBank().filter((m) => m.isPromotion);
+    expect(new Set(promos.map((m) => m.promotion))).toEqual(new Set(['q', 'r', 'b', 'n']));
+    for (const m of promos) {
+      const { what, becomes } = describeWriteMove(m);
+      expect(what).toBe('The pawn goes');
+      expect(becomes).toBe(({ q: 'queen', r: 'rook', b: 'bishop', n: 'knight' } as Record<string, string>)[m.promotion!]);
+    }
+  });
+
+  it('says nothing about promotion for other moves', () => {
+    const castle = moveBank().find((m) => m.isCastle)!;
+    expect(describeWriteMove(castle)).toEqual({ what: 'The king castles', becomes: null });
+  });
+});

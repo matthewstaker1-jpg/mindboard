@@ -3,7 +3,7 @@ import { Board, type BoardProps, type Highlight } from '../board/Board';
 import { EMPTY_FEN, isSquare, isWhitePiece, mirrorSquare, parsePlacement, placementFen, type Square } from '../board/squares';
 import { PIECE_NAME, numberedSan } from '../chess/game';
 import { normaliseSanAnswer } from '../chess/notation';
-import { type Question, expectedAnswer } from '../drills/questions';
+import { type Question, describeWriteMove, expectedAnswer } from '../drills/questions';
 import { type SessionState, isFinished, newSession, nextQuestion, submitAnswer, summarise } from '../drills/session';
 import { ALL_LEVELS, levelHref, stagePosition } from '../levels/all';
 import { type LevelDef, type SessionSummary, canMoveOn, passes } from '../levels/ladder';
@@ -91,6 +91,7 @@ export function Drill({ level, onDone, onFinish }: { level: LevelDef; onDone?: (
       setPhase('done');
       return;
     }
+    window.scrollTo(0, 0);
     ask(session);
   };
   const nextRef = useRef(next);
@@ -127,7 +128,7 @@ export function Drill({ level, onDone, onFinish }: { level: LevelDef; onDone?: (
   }
 
   return (
-    <div className="app drill">
+    <div className="app drill" data-kind={q?.kind}>
       <header className="drill__top">
         <a href="#/" className="icon-btn" aria-label="Back to journey">
           <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
@@ -260,14 +261,14 @@ function Prompt({ q, coordsOn }: { q: Question; coordsOn: boolean }) {
         </div>
       );
     case 'writeMove': {
-      const m = q.move;
-      const what = m.isCastle ? 'The king castles' : `The ${PIECE_NAME[m.piece]} goes`;
+      const { what, becomes } = describeWriteMove(q.move);
       return (
         <div className="prompt">
           <h1>Write the move</h1>
           <p>
-            {what} from the green square to the lime one{m.isPromotion ? ' and promotes' : ''}.{' '}
-            <span className="prompt__tag">{m.opening}</span>
+            {what} from the green square to the lime one
+            {becomes && <> and becomes a <strong>{becomes}</strong></>}.{' '}
+            <span className="prompt__tag">{q.move.opening}</span>
           </p>
         </div>
       );
@@ -429,6 +430,8 @@ function Feedback({ q, given, correct, ms }: { q: Question; given: string; corre
     const b = normaliseSanAnswer(q.move.san);
     if (a === b.replace('x', '')) why = 'Captures need an x.';
     else if (b.includes('=') && !a.includes('=')) why = 'Promotions name the new piece, like e8=Q.';
+    else if (b.includes('=') && a.split('=')[0] === b.split('=')[0])
+      why = `Right move, wrong piece: this pawn becomes a ${PIECE_NAME[q.move.promotion!]}, so it ends =${b.split('=')[1]}.`;
     else if (/^[KQRBN][a-h1-8]x?[a-h][1-8]/.test(b) && a.length < b.length)
       why = 'Two of your pieces could go there, so add the file or rank it starts from.';
     else if (q.move.piece !== 'p' && !q.move.isCastle && a[0] !== b[0]) why = `Start with the piece letter: ${b[0]} for ${PIECE_NAME[q.move.piece]}.`;
@@ -582,6 +585,11 @@ function Results({
         <a className="btn btn--block" href="#/">
           Back to journey
         </a>
+        {level.stage === 2 && (
+          <a className="results__sheet" href="#/notation">
+            Notation cheat sheet
+          </a>
+        )}
       </div>
     </div>
   );

@@ -70,6 +70,7 @@ function cleanPrefs(v: unknown): Progress['prefs'] {
     },
     follow: { pace: Math.min(2, Math.max(0, Math.round(num(follow.pace, d.follow.pace)))), aloud: bool(follow.aloud, d.follow.aloud) },
     onboarded: bool(v.onboarded, d.onboarded),
+    notationSeen: bool(v.notationSeen, d.notationSeen),
   };
 }
 

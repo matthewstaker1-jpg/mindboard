@@ -35,6 +35,8 @@ export interface Prefs {
   follow: { pace: number; aloud: boolean };
   /** The first-run walkthrough has been seen. */
   onboarded: boolean;
+  /** The notation cheat sheet has been shown before Stage 2. */
+  notationSeen: boolean;
 }
 
 /** Spaced repetition for squares you miss: when each should come back. */
@@ -82,6 +84,7 @@ export function defaultPrefs(): Prefs {
     study: { kind: 'any', hide: 'own-all' },
     follow: { pace: 1, aloud: false },
     onboarded: false,
+    notationSeen: false,
   };
 }
 

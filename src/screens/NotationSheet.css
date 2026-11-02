@@ -1,0 +1,65 @@
+.notation { gap: 12px; }
+.notation h1 { margin: 10px 0 0; font-size: 28px; }
+.notation__intro { margin: 0; line-height: 1.5; }
+.notation__rules {
+  margin: 6px 0 0;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+.notation__row {
+  display: grid;
+  grid-template-columns: 124px 1fr;
+  align-items: baseline;
+  gap: 14px;
+  padding: 14px 16px;
+  border-radius: 14px;
+  background: var(--surface);
+  border: 1px solid var(--line);
+}
+.notation__row dt {
+  font-size: 22px;
+  font-weight: 700;
+  color: var(--lime);
+}
+.notation__row dd {
+  margin: 0;
+  color: var(--text);
+  line-height: 1.45;
+}
+.notation__note { margin: 0; font-size: 14px; line-height: 1.5; }
+.notation__dots {
+  display: flex;
+  justify-content: center;
+  gap: 8px;
+  margin-top: auto;
+  padding-top: 12px;
+}
+.notation__dots span {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--line-strong);
+}
+.notation__dots span[data-on] { background: var(--lime); }
+.notation__actions { display: flex; gap: 10px; }
+.notation__actions .btn { flex: 1; }
+.notation__skip {
+  align-self: center;
+  background: none;
+  border: 0;
+  color: var(--muted);
+  font: inherit;
+  font-size: 14px;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+  cursor: pointer;
+}
+
+@media (max-width: 520px) {
+  .app.notation { padding-top: 10px; padding-bottom: 14px; gap: 10px; }
+  .notation h1 { margin-top: 4px; font-size: 24px; }
+  .notation__rules { gap: 8px; }
+  .notation__row { padding: 10px 14px; }
+  .notation__row dt { font-size: 20px; }
+}

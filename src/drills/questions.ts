@@ -2,7 +2,7 @@
 // Pure: given a level, the stats table and an RNG, produce a question.
 
 import { ALL_SQUARES, type Orientation, type Square } from '../board/squares';
-import { type BankMove, moveBank } from '../chess/game';
+import { type BankMove, PIECE_NAME, moveBank } from '../chess/game';
 import { knightMidpoints, knightTargets, sanMatches } from '../chess/notation';
 import type { DrillKind, LevelDef, MoveFilter } from '../levels/ladder';
 import type { StatsTable } from '../progress/stats';
@@ -133,6 +133,17 @@ export function checkAnswer(q: Question, given: string): boolean {
 }
 
 /** The answer shown after a miss. */
+/**
+ * What the write-the-move prompt says moved, and what a promoting pawn becomes:
+ * the board can't show that, so the prompt has to.
+ */
+export function describeWriteMove(m: BankMove): { what: string; becomes: string | null } {
+  return {
+    what: m.isCastle ? 'The king castles' : `The ${PIECE_NAME[m.piece]} goes`,
+    becomes: m.promotion ? PIECE_NAME[m.promotion]! : null,
+  };
+}
+
 export function expectedAnswer(q: Question): string {
   switch (q.kind) {
     case 'nameSquare':

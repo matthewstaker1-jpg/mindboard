@@ -26,7 +26,10 @@ export function Help() {
         <dt>1 · {STAGE_NAMES[1]}</dt>
         <dd>Name squares and find them, from both sides of the board, then without the letters and numbers.</dd>
         <dt>2 · {STAGE_NAMES[2]}</dt>
-        <dd>Read and write moves in notation (Nf3, exd5, O-O) until you can picture them.</dd>
+        <dd>
+          Read and write moves in notation (Nf3, exd5, O-O) until you can picture them. The{' '}
+          <a href="#/notation" className="settings__help">notation cheat sheet</a> has every rule on four cards.
+        </dd>
         <dt>3 · {STAGE_NAMES[3]}</dt>
         <dd>Real games against the engine where more and more of your pieces disappear.</dd>
         <dt>4 · {STAGE_NAMES[4]}</dt>

@@ -11,6 +11,7 @@ import { VoiceLab } from './screens/VoiceLab';
 import { Placement } from './screens/Placement';
 import { Settings } from './screens/Settings';
 import { Help } from './screens/Help';
+import { NotationGate, NotationSheet } from './screens/NotationSheet';
 import { levelById } from './levels/ladder';
 import { ALL_LEVELS } from './levels/all';
 import { isUnlocked } from './progress/progress';
@@ -39,10 +40,11 @@ export function App() {
   if (route === '/placement') return <Placement />;
   if (route === '/settings') return <Settings />;
   if (route === '/help') return <Help />;
+  if (route === '/notation') return <NotationSheet />;
   const drill = route.match(/^\/drill\/([\w-]+)$/);
   const level = drill ? levelById(drill[1]!) : undefined;
   // Keying by route gives each level a fresh drill.
-  if (level) return <LevelGate id={level.id}>{<Drill key={route} level={level} />}</LevelGate>;
+  if (level) return <LevelGate id={level.id}>{<NotationGate level={level}><Drill key={route} level={level} /></NotationGate>}</LevelGate>;
   const game = route.match(/^\/game\/([\w-]+)$/);
   const gameLevel = game ? gameLevelById(game[1]!) : undefined;
   if (gameLevel) return <LevelGate id={gameLevel.id}>{<FogGame key={route} level={gameLevel} />}</LevelGate>;

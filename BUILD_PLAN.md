@@ -71,6 +71,8 @@ A game **counts** if you don't lose and make at most 3 slips. Recall checks are 
 
 Ratings are on Stockfish's scale (anchored to engine rating lists): a fair comparison between levels and a rough guide to human ratings. `strengthFor(target)` picks the nearest measured setting and the app shows its **measured** rating. Each game level has its own adaptive offset (±40 per win/loss, ±400 cap).
 
+**Notation cheat sheet** (`screens/NotationSheet.tsx`): four click-through cards (piece and square; captures, check, mate; castling and promotion; telling two pieces apart). Shown once before your first Stage 2 drill, and always at `#/notation` (linked from Help and Stage 2 results). Write-the-move prompts name the piece a promoting pawn becomes.
+
 ## Drill engine (Stages 1–2)
 - Accuracy and recent response times per square, separately for each orientation (64×2).
 - The next question is weighted towards weak and slow squares. A missed question comes back 3–5 questions later in the same session.

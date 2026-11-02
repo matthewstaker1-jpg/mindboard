@@ -71,11 +71,32 @@
   font-size: 15px !important;
 }
 
-/* Keep board + keyboard on one laptop screen. */
+/*
+ * Keep board + answer area on one screen, laptop or phone: the board gives up
+ * whatever height the rest of the page needs for this kind of question.
+ */
+.drill { --drill-chrome: 260px; }
+.drill[data-kind='nameSquare'],
+.drill[data-kind='knightPath'] { --drill-chrome: 360px; }
+.drill[data-kind='writeMove'] { --drill-chrome: 440px; }
 .drill__board {
-  width: min(100%, 50dvh);
-  min-width: 260px;
+  width: min(100%, 50dvh, calc(100dvh - var(--drill-chrome)));
+  min-width: 240px;
   margin: 0 auto;
+}
+.prompt strong { color: var(--text); font-weight: 600; }
+
+/* Phones: tighter spacing so nothing needs scrolling between questions. */
+@media (max-width: 520px) {
+  .app.drill { padding-top: 10px; padding-bottom: 12px; gap: 10px; }
+  .drill .prompt { padding: 0; }
+  .drill .prompt h1 { font-size: 22px; margin-bottom: 2px; }
+  .drill .prompt__big { font-size: 34px; }
+  .drill .answer-field { height: 50px; font-size: 28px; }
+  .drill .key { height: 42px; }
+}
+@media (pointer: coarse) {
+  .drill__hint { display: none; }
 }
 
 .drill__input { margin-top: 4px; }
@@ -161,6 +182,7 @@
   font-weight: 700;
 }
 .results__win { color: var(--lime); }
+.results__sheet { align-self: center; color: var(--muted); font-size: 14px; text-underline-offset: 3px; }
 .results__moveon { margin-top: -4px; font-size: 14px; line-height: 1.5; }
 .results p { margin: 0; }
 .results__stats {
