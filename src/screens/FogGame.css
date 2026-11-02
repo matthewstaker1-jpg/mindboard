@@ -137,16 +137,6 @@
 }
 .game__input input::placeholder { color: #5d636e; font-size: 15px; font-weight: 500; }
 .game__input .btn { height: 44px; border-radius: 12px; }
-.game__resign {
-  align-self: center;
-  border: 0;
-  background: none;
-  color: #6f7682;
-  font: 500 13px var(--font-ui);
-  text-decoration: underline;
-  text-underline-offset: 3px;
-  cursor: pointer;
-}
 
 .recall {
   padding: 18px 18px 16px;
@@ -205,3 +195,53 @@
   color: var(--muted);
 }
 .result__slips .mono { color: var(--text); }
+
+.study {
+  padding: 16px 18px;
+  border-radius: 18px;
+  background: var(--surface);
+  border: 1px solid var(--line);
+}
+.study h2 { margin: 6px 0 6px; font-size: 19px; font-weight: 600; line-height: 1.35; }
+.study p { margin: 0; font-size: 14px; }
+.study__go { height: 56px; font-size: 17px; }
+
+.peek {
+  touch-action: none;
+  user-select: none;
+  -webkit-user-select: none;
+}
+.peek[data-active] { background: var(--lime); border-color: var(--lime); color: var(--ground); }
+.peek__text { display: flex; flex-direction: column; align-items: flex-start; line-height: 1.15; font-size: 13px; }
+.peek__left { font-size: 15px; font-weight: 700; }
+.game__board[data-peeking] .board { box-shadow: 0 0 0 3px var(--lime), 0 24px 60px rgba(0, 0, 0, 0.55); }
+
+.game__links {
+  display: flex;
+  justify-content: center;
+  gap: 22px;
+}
+.game__links button {
+  border: 0;
+  background: none;
+  color: #6f7682;
+  font: 500 13px var(--font-ui);
+  text-decoration: underline;
+  text-underline-offset: 3px;
+  cursor: pointer;
+}
+.game__links button:disabled { opacity: 0.4; cursor: default; }
+.result__slips li[data-kind='lost-track'] { color: var(--amber); }
+
+.review { display: flex; flex-direction: column; gap: 12px; }
+.review__item {
+  display: grid;
+  grid-template-columns: 120px 1fr;
+  gap: 12px;
+  align-items: center;
+  font-size: 14px;
+}
+.review__item p { margin: 0; line-height: 1.45; }
+.review__board .board { box-shadow: none; --board-radius: 6px; }
+.review__better { color: var(--lime); font-weight: 700; }
+.review__progress { margin: 0; }

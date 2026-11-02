@@ -4,6 +4,8 @@ export type HideRule =
   | { kind: 'none' }
   /** `count` of your non-pawn pieces made invisible, chosen at random at the start. */
   | { kind: 'fog'; count: number }
+  /** Everything starts visible; each of your pieces vanishes once it has moved. */
+  | { kind: 'moved' }
   /** All your pawns gone. */
   | { kind: 'own-pawns' }
   /** All your pieces gone; theirs stay lit. */
@@ -28,7 +30,8 @@ export interface GameLevel {
   hide: HideRule;
   view: GameView;
   showMoveList: boolean;
-  peeks: number;
+  /** Total milliseconds you can hold the board visible per game; null is unlimited. */
+  peekBudgetMs: number | null;
   /**
    * A recall check pauses the game every this-many of your moves (random in
    * range). Null means none: they're off on every level for now because the
@@ -42,6 +45,21 @@ const PASS = { result: 'not-loss', maxSlips: 3, gamesInARow: 3 } as const;
 
 export const GAME_LEVELS: GameLevel[] = [
   {
+    id: 'fade-moved',
+    mode: 'game',
+    stage: 3,
+    title: 'Fade as they move',
+    blurb: 'Every piece starts visible. Each of yours vanishes once it has moved.',
+    engineElo: 800,
+    side: 'white',
+    hide: { kind: 'moved' },
+    view: 'board',
+    showMoveList: true,
+    peekBudgetMs: null,
+    recallEvery: null,
+    pass: PASS,
+  },
+  {
     id: 'fog-2',
     mode: 'game',
     stage: 3,
@@ -52,7 +70,7 @@ export const GAME_LEVELS: GameLevel[] = [
     hide: { kind: 'fog', count: 2 },
     view: 'board',
     showMoveList: true,
-    peeks: 3,
+    peekBudgetMs: null,
     recallEvery: null,
     pass: PASS,
   },
@@ -67,7 +85,7 @@ export const GAME_LEVELS: GameLevel[] = [
     hide: { kind: 'fog', count: 4 },
     view: 'board',
     showMoveList: true,
-    peeks: 3,
+    peekBudgetMs: null,
     recallEvery: null,
     pass: PASS,
   },
@@ -82,7 +100,7 @@ export const GAME_LEVELS: GameLevel[] = [
     hide: { kind: 'fog', count: 6 },
     view: 'board',
     showMoveList: true,
-    peeks: 3,
+    peekBudgetMs: 30_000,
     recallEvery: null,
     pass: PASS,
   },
@@ -97,7 +115,7 @@ export const GAME_LEVELS: GameLevel[] = [
     hide: { kind: 'own-pawns' },
     view: 'board',
     showMoveList: true,
-    peeks: 3,
+    peekBudgetMs: 30_000,
     recallEvery: null,
     pass: PASS,
   },
@@ -112,7 +130,7 @@ export const GAME_LEVELS: GameLevel[] = [
     hide: { kind: 'own-all' },
     view: 'board',
     showMoveList: true,
-    peeks: 3,
+    peekBudgetMs: 20_000,
     recallEvery: null,
     pass: PASS,
   },
@@ -127,7 +145,7 @@ export const GAME_LEVELS: GameLevel[] = [
     hide: { kind: 'all' },
     view: 'dark',
     showMoveList: false,
-    peeks: 2,
+    peekBudgetMs: 15_000,
     recallEvery: null,
     pass: PASS,
   },
@@ -142,7 +160,7 @@ export const GAME_LEVELS: GameLevel[] = [
     hide: { kind: 'all' },
     view: 'list',
     showMoveList: true,
-    peeks: 2,
+    peekBudgetMs: 15_000,
     recallEvery: null,
     pass: PASS,
   },
@@ -157,7 +175,7 @@ export const GAME_LEVELS: GameLevel[] = [
     hide: { kind: 'all' },
     view: 'none',
     showMoveList: false,
-    peeks: 1,
+    peekBudgetMs: 10_000,
     recallEvery: null,
     pass: PASS,
   },

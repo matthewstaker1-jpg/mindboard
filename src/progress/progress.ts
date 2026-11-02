@@ -23,10 +23,38 @@ export interface Progress {
   streak: { days: number; lastDay: string | null };
   /** Longest run of correct answers in a row, ever. */
   bestRun: number;
+  /**
+   * Added to every game level's engine rating. Moves up when you win and
+   * down when you lose, so games settle near an even score.
+   */
+  engineOffset: number;
+  study: { played: number; passed: number };
+  /** Follow the moves: how many plies the next round reads out. */
+  follow: { plies: number; rounds: number; perfect: number };
+  /** The last day (YYYY-MM-DD) the Today session was finished. */
+  todayDone: string | null;
+}
+
+export const ENGINE_STEP = 40;
+export const ENGINE_OFFSET_LIMIT = 400;
+
+/** The rating the engine actually plays at for a level, after your results have adjusted it. */
+export function effectiveElo(levelElo: number, offset: number): number {
+  return Math.max(600, Math.min(2400, levelElo + offset));
 }
 
 export function emptyProgress(): Progress {
-  return { version: 1, stats: emptyStats(), levels: {}, streak: { days: 0, lastDay: null }, bestRun: 0 };
+  return {
+    version: 1,
+    stats: emptyStats(),
+    levels: {},
+    streak: { days: 0, lastDay: null },
+    bestRun: 0,
+    engineOffset: 0,
+    study: { played: 0, passed: 0 },
+    follow: { plies: 6, rounds: 0, perfect: 0 },
+    todayDone: null,
+  };
 }
 
 /** Local-time YYYY-MM-DD. */
@@ -102,6 +130,36 @@ export function withSession(p: Progress, level: LevelDef, summary: SessionSummar
   return { ...p, levels: { ...p.levels, [level.id]: record }, streak: withDay(p, now) };
 }
 
+/** Nudge the engine towards an even score: up after a win, down after a loss. */
+export function withEngineResult(p: Progress, outcome: 'win' | 'draw' | 'loss'): Progress {
+  const step = outcome === 'win' ? ENGINE_STEP : outcome === 'loss' ? -ENGINE_STEP : 0;
+  const engineOffset = Math.max(-ENGINE_OFFSET_LIMIT, Math.min(ENGINE_OFFSET_LIMIT, p.engineOffset + step));
+  return { ...p, engineOffset };
+}
+
+export function withStudy(p: Progress, passed: boolean, now: Date): Progress {
+  return {
+    ...p,
+    study: { played: p.study.played + 1, passed: p.study.passed + (passed ? 1 : 0) },
+    streak: withDay(p, now),
+  };
+}
+
+/** Follow the moves gets longer after a perfect round and shorter after a bad one. */
+export function withFollowRound(p: Progress, correct: number, total: number, now: Date): Progress {
+  const perfect = correct === total;
+  const plies = perfect ? Math.min(30, p.follow.plies + 2) : correct <= total - 2 ? Math.max(4, p.follow.plies - 2) : p.follow.plies;
+  return {
+    ...p,
+    follow: { plies, rounds: p.follow.rounds + 1, perfect: p.follow.perfect + (perfect ? 1 : 0) },
+    streak: withDay(p, now),
+  };
+}
+
+export function withTodayDone(p: Progress, now: Date): Progress {
+  return { ...p, todayDone: dayKey(now), streak: withDay(p, now) };
+}
+
 /**
  * Apply a finished game. A game level is passed after `gamesInARow`
  * passing games in a row (BUILD_PLAN: "pass three games in a row").
@@ -124,5 +182,5 @@ export function withGame(
     passRun,
     passed: prev.passed || passRun >= level.pass.gamesInARow,
   };
-  return { ...p, levels: { ...p.levels, [level.id]: record }, streak: withDay(p, now) };
+  return withEngineResult({ ...p, levels: { ...p.levels, [level.id]: record }, streak: withDay(p, now) }, outcome);
 }
