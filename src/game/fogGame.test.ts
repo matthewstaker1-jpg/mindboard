@@ -379,3 +379,21 @@ describe('study goals', () => {
   });
 });
 
+describe('blocked moves', () => {
+  it('explains a rook move blocked by a piece in the way', () => {
+    const s = newGame(level('fog-2'), seeded(80), { startFen: '4k3/8/8/n7/8/8/8/R3K3 w - - 0 1' });
+    const r = playerMoveTyped(s, 'Ra8');
+    expect(r.kind).toBe('slip');
+    if (r.kind === 'slip') {
+      expect(r.message).toMatch(/black knight on a5 is in the way/);
+      expect(r.state.slips.at(-1)).toMatchObject({ kind: 'lost-track', square: 'a5' });
+    }
+  });
+
+  it('explains a move onto your own piece', () => {
+    const s = newGame(level('fog-2'), seeded(81), 'w');
+    const r = playerMoveTyped(s, 'Bd2');
+    expect(r.kind).toBe('slip');
+    if (r.kind === 'slip') expect(r.message).toMatch(/Your own pawn is on d2/);
+  });
+});

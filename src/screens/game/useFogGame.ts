@@ -5,16 +5,24 @@ import { useCallback, useEffect, useMemo, useReducer, useRef, useState } from 'r
 import { parsePlacement } from '../../board/squares';
 import type { StudyPosition } from '../../chess/positions';
 import { getEngine, onEngineLoad } from '../../engine/engine';
-import { type PlayerMoveResult, type Slip, fenOf, gamePasses, newGame, turnOf } from '../../game/fogGame';
+import { type GameState, type PlayerMoveResult, type Slip, fenOf, replay, gamePasses, newGame, turnOf } from '../../game/fogGame';
 import { povCp } from '../../game/review';
+import { moveToWords } from '../../chess/spoken';
+import { Speaker } from '../../voice/recogniser';
 import { MISCLICK_GRACE_MS, initialScreen, makeScreenReducer } from '../../game/screenState';
 import type { GameLevel } from '../../levels/games';
 import { effectiveElo, engineOffset, withGame, withLostTrack, withStudy } from '../../progress/progress';
 import { useProgress } from '../../progress/store';
 
 const MIN_ENGINE_MS = 600;
-/** Study positions pass if you keep at least this much of the evaluation (centipawns). */
-export const STUDY_TOLERANCE = 150;
+/**
+ * Study positions pass if you lose no more than this much of the evaluation
+ * (centipawns). Wide enough that engine noise at this depth doesn't decide it.
+ */
+export const STUDY_TOLERANCE = 200;
+/** Ending clearly better than this always passes, whatever the start was. */
+export const STUDY_WINNING = 300;
+const STUDY_EVAL_DEPTH = 14;
 export const STUDY_MAX_SLIPS = 1;
 const reducer = makeScreenReducer(Math.random);
 /** With recall checks switched on, fog levels pause every few of your moves to ask where a piece is. */
@@ -98,13 +106,14 @@ export function useFogGame(level: GameLevel, scenario?: StudyPosition) {
     if (!scenario || !game.result) return null;
     if (game.goalMet !== null) return game.goalMet && game.slips.length <= STUDY_MAX_SLIPS;
     if (s.evals.start === null || s.evals.end === null) return null;
-    return s.evals.end - s.evals.start >= -STUDY_TOLERANCE && game.slips.length <= STUDY_MAX_SLIPS;
+    const held = s.evals.end - s.evals.start >= -STUDY_TOLERANCE || s.evals.end >= STUDY_WINNING;
+    return held && game.slips.length <= STUDY_MAX_SLIPS;
   })();
   const needEndEval = !!scenario && !!game.result && game.goalMet === null && s.evals.end === null;
   useEffect(() => {
     if (!needEndEval) return;
     getEngine()
-      .evaluate(fen, 12)
+      .evaluate(fen, STUDY_EVAL_DEPTH)
       .then((r) => dispatch({ type: 'evalEnd', cp: povCp(r.score, toMove, game.color) }))
       .catch(() => dispatch({ type: 'evalEnd', cp: s.evals.start ?? 0 }));
   }, [needEndEval, fen, toMove, game.color, s.evals.start]);
@@ -184,7 +193,7 @@ export function useFogGame(level: GameLevel, scenario?: StudyPosition) {
     dispatch({ type: 'finishStudy' });
     if (scenario?.goal.kind === 'moves') {
       getEngine()
-        .evaluate(fen, 12)
+        .evaluate(fen, STUDY_EVAL_DEPTH)
         .then((r) => dispatch({ type: 'evalStart', cp: povCp(r.score, toMove, game.color) }))
         .catch(() => dispatch({ type: 'evalStart', cp: 0 }));
     }
@@ -225,4 +234,20 @@ export function useFogGame(level: GameLevel, scenario?: StudyPosition) {
     finishStudy,
     restart,
   } as const;
+}
+
+/** Speak the opponent's moves as they arrive. */
+export function useEarsOnlyReplies(on: boolean, game: GameState) {
+  const speaker = useRef<Speaker | null>(null);
+  const count = game.moves.length;
+  useEffect(() => {
+    const last = game.moves.at(-1);
+    if (!on || !last || last.color === game.color) return;
+    speaker.current ??= new Speaker();
+    const verbose = replay(game.startFen, game.moves).history({ verbose: true }).at(-1);
+    if (verbose) void speaker.current.speak(`${last.color === 'w' ? 'White' : 'Black'}: ${moveToWords(verbose)}`);
+    // Only when a new move arrives.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [on, count]);
+  useEffect(() => () => speaker.current?.cancel(), []);
 }

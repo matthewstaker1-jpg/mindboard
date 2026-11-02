@@ -14,6 +14,8 @@
 .drill__meta {
   display: flex;
   justify-content: space-between;
+  gap: 8px;
+  white-space: nowrap;
   font: 500 11px var(--font-mono);
   letter-spacing: 0.06em;
   color: var(--muted);
@@ -186,4 +188,12 @@
   display: flex;
   flex-direction: column;
   gap: 10px;
+}
+.prompt__replay { flex: none; cursor: pointer; background: transparent; color: var(--text); font: inherit; font-size: 13px; }
+
+@media (min-width: 1000px) {
+  .drill__board { width: min(100%, 62dvh); }
+}
+@media (min-width: 1000px) {
+  .app.drill { max-width: 640px; }
 }

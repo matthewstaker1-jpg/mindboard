@@ -39,3 +39,27 @@
   transform: translateX(12px);
   background: var(--ground);
 }
+
+.setting {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  width: 100%;
+  padding: 14px 0;
+  background: none;
+  border: 0;
+  border-bottom: 1px solid var(--line);
+  color: var(--text);
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+.setting__text { display: flex; flex-direction: column; gap: 3px; }
+.setting__label { font-weight: 600; }
+.setting__hint { font-size: 13px; line-height: 1.4; }
+.setting .coords-toggle__track { flex: none; }
+@media (max-width: 420px) {
+  .coords-toggle__label { display: none; }
+  .coords-toggle { padding: 0 8px; }
+}

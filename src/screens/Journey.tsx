@@ -1,16 +1,21 @@
 import { useState } from 'react';
 import { Board, type Highlight } from '../board/Board';
 import { EMPTY_FEN, type Orientation, type Square } from '../board/squares';
-import { ALL_LEVELS, STAGE_NAMES, isGameLevel, levelHref } from '../levels/all';
-import { currentLevelIndex, dayKey, displayStreak, engineOffset, shownElo, isPassed, isUnlocked, levelsPassed, recentPasses, type Progress } from '../progress/progress';
+import { ALL_LEVELS, STAGE_NAMES, isGameLevel, levelHref, stagePosition } from '../levels/all';
+import { currentLevelIndex, dayKey, displayStreak, engineOffset, shownElo, isPassed, isUnlocked, levelsPassed, lostTrackSquares, dueSquares, recentPasses, withPrefs } from '../progress/progress';
 import { weakestSquares } from '../progress/stats';
-import { currentProfile, exportProgress, importProgress, resetProgress, useProgress } from '../progress/store';
+import { currentProfile, useProgress } from '../progress/store';
 import './Journey.css';
 
 export function Journey() {
-  const { progress } = useProgress();
+  const { progress, update } = useProgress();
   const [side, setSide] = useState<Orientation>('white');
+  const [allStages, setAllStages] = useState(false);
   if (!progress) return <div className="app" />;
+  if (!progress.prefs.onboarded) return <Welcome onDone={(placement) => {
+    update((p) => withPrefs(p, { onboarded: true }));
+    if (placement) window.location.hash = '#/placement';
+  }} />;
 
   const cur = currentLevelIndex(progress);
   const allDone = cur >= ALL_LEVELS.length;
@@ -18,6 +23,8 @@ export function Journey() {
   const streak = displayStreak(progress, new Date());
   const stageLevels = ALL_LEVELS.filter((l) => l.stage === level.stage);
   const weak = weakestSquares(progress.stats, side, 5);
+  const lost = lostTrackSquares(progress, side, 4);
+  const due = dueSquares(progress, new Date()).size;
   const hl: Partial<Record<Square, Highlight>> = {};
   for (const w of weak) hl[w.square] = 'warn';
 
@@ -40,12 +47,28 @@ export function Journey() {
           </svg>
           {streak} {streak === 1 ? 'day' : 'days'}
         </span>
+        <a href="#/help" className="icon-btn journey__icon" aria-label="How it works" title="How it works">
+          ?
+        </a>
+        <a href="#/settings" className="icon-btn journey__icon" aria-label="Settings" title="Settings">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" aria-hidden="true">
+            <path d="M4 6h10M18 6h2M4 12h4M12 12h8M4 18h12M20 18h0" />
+            <circle cx="16" cy="6" r="2" />
+            <circle cx="10" cy="12" r="2" />
+            <circle cx="18" cy="18" r="2" />
+          </svg>
+        </a>
       </header>
 
       <a className="today" href="#/today" data-done={progress.todayDone === dayKey(new Date()) || undefined}>
         <span className="today__text">
           <span className="eyebrow">{progress.todayDone === dayKey(new Date()) ? 'Done today · go again?' : 'Today · 5–10 minutes'}</span>
           <span className="today__title">Warm-up, follow the moves, one study position</span>
+          {due > 0 && (
+            <span className="muted today__due">
+              {due} square{due === 1 ? '' : 's'} due for review in the warm-up
+            </span>
+          )}
         </span>
         <span className="today__go" aria-hidden="true">
           {progress.todayDone === dayKey(new Date()) ? '✓' : '→'}
@@ -62,10 +85,10 @@ export function Journey() {
         ) : (
           <>
             <p className="eyebrow">
-              Stage {level.stage} · {STAGE_NAMES[level.stage]}
+              Stage {level.stage} · {STAGE_NAMES[level.stage]} · {stagePosition(level.id)!.index} of {stagePosition(level.id)!.count}
             </p>
             <h1>
-              {level.title} · Level {cur + 1}
+              {level.title}
             </h1>
             <p className="hero__blurb">{level.blurb}</p>
             <div className="hero__segs" aria-hidden="true">
@@ -128,6 +151,11 @@ export function Journey() {
             </ol>
           </div>
         )}
+        {lost.length > 0 && (
+          <p className="muted weak__lost">
+            Where you lose track in games: {lost.map((l) => `${l.square} (${l.count})`).join(', ')}
+          </p>
+        )}
       </section>
 
       <section className="card practice">
@@ -166,7 +194,7 @@ export function Journey() {
             {levelsPassed(progress)} / {ALL_LEVELS.length} levels
           </span>
         </div>
-        {[1, 2, 3, 4].map((stage) => (
+        {[1, 2, 3, 4].filter((stage) => allStages || allDone || stage === level.stage).map((stage) => (
           <div key={stage} className="path__stage">
             <p className="eyebrow path__stage-name">
               Stage {stage} · {STAGE_NAMES[stage]}
@@ -203,6 +231,11 @@ export function Journey() {
             </ol>
           </div>
         ))}
+        {!allDone && (
+          <button type="button" className="path__more" onClick={() => setAllStages(!allStages)}>
+            {allStages ? 'Show just this stage' : 'Show all four stages'}
+          </button>
+        )}
         <ol className="path__later">
           <li data-state="lock">
             <div>
@@ -214,45 +247,41 @@ export function Journey() {
         </ol>
       </section>
 
-      <footer className="journey__foot">
-        <a href="#/gallery">Board gallery</a>
-        <button type="button" onClick={() => downloadBackup(progress)}>
-          Back up
-        </button>
-        <label className="journey__restore">
-          Restore
-          <input
-            type="file"
-            accept="application/json,.json"
-            onChange={async (e) => {
-              const file = e.target.files?.[0];
-              e.target.value = '';
-              if (!file) return;
-              if (!window.confirm('Replace your progress with this backup?')) return;
-              const err = importProgress(await file.text());
-              window.alert(err ?? 'Progress restored.');
-            }}
-          />
-        </label>
-        <button
-          type="button"
-          onClick={() => {
-            if (window.confirm('Reset all progress? This clears every level and square stat.')) void resetProgress();
-          }}
-        >
-          Reset progress
-        </button>
-      </footer>
       {currentProfile() && <p className="mono muted journey__profile">Profile: {currentProfile()} (separate from your real progress)</p>}
     </div>
   );
 }
 
-function downloadBackup(p: Progress) {
-  const blob = new Blob([exportProgress(p)], { type: 'application/json' });
-  const a = document.createElement('a');
-  a.href = URL.createObjectURL(blob);
-  a.download = `mindboard-backup-${dayKey(new Date())}.json`;
-  a.click();
-  setTimeout(() => URL.revokeObjectURL(a.href), 1000);
+/** First launch: what this is, how it works, where to start. */
+function Welcome({ onDone }: { onDone: (placement: boolean) => void }) {
+  return (
+    <div className="app welcome">
+      <p className="eyebrow">Mindboard</p>
+      <h1>Learn to play chess without seeing the board.</h1>
+      <ol className="welcome__steps">
+        <li>
+          <strong>Learn the board.</strong> Name and find squares from both sides until it's automatic.
+        </li>
+        <li>
+          <strong>Moves &amp; notation.</strong> Read and write moves until you can picture them.
+        </li>
+        <li>
+          <strong>Fade the board.</strong> Play the computer while your pieces disappear one by one.
+        </li>
+        <li>
+          <strong>Full blindfold.</strong> No board at all: just the moves, in your head.
+        </li>
+      </ol>
+      <p className="muted">
+        Ten minutes a day is plenty: the <em>Today</em> button picks a short mix for you. If you lose track of a piece in a
+        game, that's a <em>slip</em>; a few are allowed. The <a href="#/help">help page</a> explains everything else.
+      </p>
+      <button type="button" className="btn btn--primary btn--block" onClick={() => onDone(false)} autoFocus>
+        Start at the beginning
+      </button>
+      <button type="button" className="btn btn--block welcome__alt" onClick={() => onDone(true)}>
+        I know the board: take the placement test
+      </button>
+    </div>
+  );
 }

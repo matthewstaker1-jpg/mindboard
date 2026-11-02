@@ -335,6 +335,56 @@ export function lostTrackTyped(s: GameState, text: string): Trace | null {
   return null;
 }
 
+const LINES: Record<string, [number, number][]> = {
+  r: [[1, 0], [-1, 0], [0, 1], [0, -1]],
+  b: [[1, 1], [1, -1], [-1, 1], [-1, -1]],
+  q: [[1, 0], [-1, 0], [0, 1], [0, -1], [1, 1], [1, -1], [-1, 1], [-1, -1]],
+};
+const sqAt = (f: number, r: number) => `${FILES[f]}${r}` as Square;
+
+export interface Blocked {
+  text: string;
+  square: Square;
+}
+
+/**
+ * Why a typed piece move is illegal, when it's a visualisation problem: your
+ * own piece is already on the target, or something stands in the way of a
+ * rook, bishop or queen that would otherwise get there.
+ */
+export function explainBlocked(s: GameState, text: string): Blocked | null {
+  const m = text.trim().match(/^([KQRBNkqrbn])?([a-h])?([1-8])?x?([a-h][1-8])/);
+  if (!m) return null;
+  const type = (m[1] ?? 'p').toLowerCase();
+  const to = m[4] as Square;
+  const chess = chessOf(s);
+  const name = PIECE_NAME[type]!;
+  const own = chess.get(to);
+  if (own && own.color === s.color) {
+    return { text: `Your own ${PIECE_NAME[own.type]} is on ${to}, so your ${name} can't go there.`, square: to };
+  }
+  const dirs = LINES[type];
+  if (!dirs) return null;
+  const tf = to.charCodeAt(0) - 97;
+  const tr = Number(to[1]);
+  for (const from of ownSquares(chess, s.color, (t) => t === type)) {
+    if ((m[2] && from[0] !== m[2]) || (m[3] && from[1] !== m[3])) continue;
+    const ff = from.charCodeAt(0) - 97;
+    const fr = Number(from[1]);
+    const df = Math.sign(tf - ff);
+    const dr = Math.sign(tr - fr);
+    const straight = ff === tf || fr === tr || Math.abs(tf - ff) === Math.abs(tr - fr);
+    if (!straight || !dirs.some(([a, b]) => a === df && b === dr)) continue;
+    for (let f = ff + df, r = fr + dr; f !== tf || r !== tr; f += df, r += dr) {
+      const p = chess.get(sqAt(f, r));
+      if (!p) continue;
+      const whose = p.color === s.color ? 'your own' : p.color === 'w' ? 'the white' : 'the black';
+      return { text: `Your ${name} on ${from} can't reach ${to}: ${whose} ${PIECE_NAME[p.type]} on ${sqAt(f, r)} is in the way.`, square: sqAt(f, r) };
+    }
+  }
+  return null;
+}
+
 /** A typed move: "nf3", "g1f3", "0-0" and so on. */
 export function playerMoveTyped(s: GameState, text: string): PlayerMoveResult {
   if (s.result || s.pendingRecall || turnOf(s) !== s.color) return { kind: 'unreadable', message: "It isn't your move." };
@@ -349,6 +399,8 @@ export function playerMoveTyped(s: GameState, text: string): PlayerMoveResult {
     case 'illegal': {
       const t = lostTrackTyped(s, text);
       if (t) return { kind: 'slip', state: slip(s, 'lost-track', traceText(t), t.left.from), message: traceText(t) };
+      const b = explainBlocked(s, text);
+      if (b) return { kind: 'slip', state: slip(s, 'lost-track', b.text, b.square), message: b.text };
       return { kind: 'slip', state: slip(s, 'illegal', `${r.input} isn't legal here`), message: `${r.input} isn't a legal move here.` };
     }
   }

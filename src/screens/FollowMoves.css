@@ -60,7 +60,7 @@
   position: absolute;
   top: 6px;
   left: 8px;
-  font-size: 10px;
+  font-size: 11px;
   color: var(--dim);
 }
 
@@ -69,3 +69,4 @@
 .follow__reveal p { margin: 0; }
 .follow__board { width: min(100%, 44dvh); min-width: 240px; margin: 6px auto; }
 .follow__line { font-size: 13px; line-height: 1.6; color: var(--muted); }
+.follow__opts[data-kind='yesNo'] .follow__opt { min-height: 72px; font-size: 20px; }

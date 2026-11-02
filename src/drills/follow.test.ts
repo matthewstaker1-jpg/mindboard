@@ -27,13 +27,36 @@ describe('Follow the moves', () => {
       const c = new Chess(r.fen);
       expect(r.questions.length).toBe(3);
       for (const q of r.questions) {
-        expect(q.options.length).toBe(4);
-        expect(new Set(q.options).size).toBe(4);
+        const n = q.kind === 'yesNo' ? 2 : 4;
+        expect(q.options.length).toBe(n);
+        expect(new Set(q.options).size).toBe(n);
         const right = q.options.filter((o) => checkFollow(q, o));
         expect(right).toHaveLength(1);
         if (q.kind === 'whatsOn') expect(q.answer).toBe(pieceText(c.get(q.square)));
-        else for (const a of q.answers) expect(c.get(a)).toBeTruthy();
+        else if (q.kind === 'where') for (const a of q.answers) expect(c.get(a)).toBeTruthy();
+        else if (q.prompt.startsWith('Is ')) {
+          const by = q.prompt.endsWith('White?') ? 'w' : 'b';
+          expect(q.answer).toBe(c.isAttacked(q.square, by) ? 'Yes' : 'No');
+        } else {
+          const from = q.prompt.match(/on ([a-h][1-8]) take/)![1];
+          const legal = c.moves({ verbose: true }).some((m) => m.from === from && m.to === q.square);
+          expect(q.answer).toBe(legal ? 'Yes' : 'No');
+        }
       }
     }
+  });
+
+  it('mixes in yes/no questions with both answers', () => {
+    const answers = new Set<string>();
+    let yesNo = 0;
+    for (let i = 0; i < 60; i++) {
+      for (const q of makeFollowRound(12, seeded(100 + i)).questions) {
+        if (q.kind !== 'yesNo') continue;
+        yesNo++;
+        answers.add(q.answer);
+      }
+    }
+    expect(yesNo).toBeGreaterThan(20);
+    expect(answers).toEqual(new Set(['Yes', 'No']));
   });
 });

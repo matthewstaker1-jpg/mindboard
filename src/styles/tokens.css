@@ -38,6 +38,8 @@
   --hl-warn-dark: #f0a43c;
   --hl-attacker-light: #ff8c7e;
   --hl-attacker-dark: #e86a5b;
+  /* Rings and ticks drawn on highlighted squares (shape as well as colour) */
+  --hl-shape: rgba(14, 15, 18, 0.58);
 
   /* Dark board (stage 3, last move only) */
   --void-light: #2a2e37;

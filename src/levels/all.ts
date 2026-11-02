@@ -17,6 +17,14 @@ export function isGameLevel(l: AnyLevel): l is GameLevel {
   return 'mode' in l && l.mode === 'game';
 }
 
+/** Where a level sits within its own stage: "2 of 7". Numbering restarts each stage. */
+export function stagePosition(id: string): { index: number; count: number } | null {
+  const l = ALL_LEVELS.find((x) => x.id === id);
+  if (!l) return null;
+  const same = ALL_LEVELS.filter((x) => x.stage === l.stage);
+  return { index: same.indexOf(l) + 1, count: same.length };
+}
+
 export function levelHref(l: AnyLevel): string {
   return isGameLevel(l) ? `#/game/${l.id}` : `#/drill/${l.id}`;
 }

@@ -113,7 +113,7 @@ button.board__sq:focus-visible {
 .board__label {
   position: absolute;
   font-family: var(--font-mono);
-  font-size: clamp(8px, 2.6cqw, 13px);
+  font-size: clamp(10px, 2.8cqw, 14px);
   font-weight: 700;
   line-height: 1;
   pointer-events: none;
@@ -130,3 +130,27 @@ button.board__sq:focus-visible {
   border-radius: 50%;
   border: 3px solid var(--lime);
 }
+
+/* Highlights carry a shape as well as a colour, for colour-blind players:
+   target = solid inner ring, warn = dashed ring, attacker = corner ticks. */
+.board__sq[data-hl] { position: relative; }
+.board__sq[data-hl='target']::after,
+.board__sq[data-hl='warn']::after,
+.board__sq[data-hl='attacker']::after {
+  content: '';
+  position: absolute;
+  inset: 6%;
+  border-radius: 8%;
+  pointer-events: none;
+}
+.board__sq[data-hl='target']::after { border: 2px solid var(--hl-shape); }
+.board__sq[data-hl='warn']::after { border: 2px dashed var(--hl-shape); }
+.board__sq[data-hl='attacker']::after {
+  inset: 4%;
+  border-radius: 0;
+  background:
+    linear-gradient(135deg, var(--hl-shape) 12%, transparent 12%),
+    linear-gradient(-45deg, var(--hl-shape) 12%, transparent 12%);
+}
+.board:focus-visible,
+.board__sq:focus-visible { outline: 3px solid var(--lime); outline-offset: 2px; z-index: 2; }

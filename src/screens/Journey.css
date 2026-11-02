@@ -259,3 +259,47 @@
   color: var(--muted);
   text-underline-offset: 3px;
 }
+.journey__icon {
+  width: 36px;
+  height: 36px;
+  font: 700 16px var(--font-ui);
+  text-decoration: none;
+}
+.path__more {
+  margin: 4px 0 8px;
+  padding: 0;
+  background: none;
+  border: 0;
+  color: var(--muted);
+  font: inherit;
+  font-size: 13px;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+  cursor: pointer;
+}
+.welcome { justify-content: center; gap: 4px; }
+.welcome h1 { font-size: 30px; line-height: 1.15; margin: 6px 0 16px; }
+.welcome__steps { padding-left: 20px; margin: 0 0 12px; line-height: 1.5; }
+.welcome__steps li { margin-bottom: 8px; color: var(--muted); }
+.welcome__steps strong { color: var(--text); }
+.welcome .muted { line-height: 1.5; margin-bottom: 20px; }
+.welcome a { color: var(--text); }
+.welcome__alt { margin-top: 10px; }
+.journey__top { gap: 8px; }
+.journey__brand { flex: 1; }
+.weak__lost { font-size: 13px; margin: 10px 0 0; }
+
+/* Laptop and up: two columns, the path beside everything else. */
+@media (min-width: 1000px) {
+  .app.journey {
+    max-width: 1040px;
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+    column-gap: 32px;
+    align-content: start;
+  }
+  .app.journey > * { grid-column: 1; }
+  .app.journey > .journey__top { grid-column: 1 / -1; }
+  .app.journey > .path { grid-column: 2; grid-row: 2 / span 6; align-self: start; }
+}
+.today__due { display: block; font-size: 12px; margin-top: 4px; }

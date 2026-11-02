@@ -5,10 +5,12 @@ import { PIECE_NAME, numberedSan } from '../chess/game';
 import { normaliseSanAnswer } from '../chess/notation';
 import { type Question, expectedAnswer } from '../drills/questions';
 import { type SessionState, isFinished, newSession, nextQuestion, submitAnswer, summarise } from '../drills/session';
-import { ALL_LEVELS, levelHref } from '../levels/all';
-import { type LevelDef, type SessionSummary, levelNumber, passes } from '../levels/ladder';
+import { ALL_LEVELS, levelHref, stagePosition } from '../levels/all';
+import { type LevelDef, type SessionSummary, passes } from '../levels/ladder';
 import { dueSquares, withAnswer, withSession } from '../progress/progress';
-import { useProgress } from '../progress/store';
+import { usePref, useProgress } from '../progress/store';
+import { moveToWords, squareWords } from '../chess/spoken';
+import { Speaker } from '../voice/recogniser';
 import { NotationKeyboard, SquareKeypad, useKeys } from '../ui/keypads';
 import { CoordsToggle, useCoordsPref } from '../ui/prefs';
 import './Drill.css';
@@ -34,6 +36,22 @@ export function Drill({ level, onDone, onFinish }: { level: LevelDef; onDone?: (
   const [ms, setMs] = useState(0);
   const [summary, setSummary] = useState<SessionSummary | null>(null);
   const startRef = useRef(0);
+  const [earsOnly] = usePref('earsOnly');
+  const speaker = useRef(new Speaker());
+  // Ears only: the prompt is spoken; the clock starts once you've heard it.
+  const say = async (question: Question) => {
+    const text = spokenPrompt(question);
+    if (!text) return;
+    speaker.current.cancel();
+    await speaker.current.speak(text);
+    startRef.current = performance.now();
+  };
+  useEffect(() => {
+    if (earsOnly && q && phase === 'ask') void say(q);
+    // Speak each new question once.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [q?.id, earsOnly]);
+  useEffect(() => () => speaker.current.cancel(), []);
 
   const ask = (s: SessionState) => {
     if (!progress) return;
@@ -97,7 +115,7 @@ export function Drill({ level, onDone, onFinish }: { level: LevelDef; onDone?: (
     (window as unknown as { __mindboard: unknown }).__mindboard = { question: q, phase, expected: q && expectedAnswer(q) };
   }
 
-  const n = levelNumber(level.id);
+  const pos = stagePosition(level.id);
 
   if (phase === 'done' && summary) {
     return <Results level={level} summary={summary} bestRun={Math.max(...runs(session))} onDone={onDone} onRetry={() => {
@@ -119,7 +137,7 @@ export function Drill({ level, onDone, onFinish }: { level: LevelDef; onDone?: (
         <div className="drill__progress">
           <div className="drill__meta">
             <span>
-              {n ? `STAGE ${level.stage} · LEVEL ${n}` : level.title.toUpperCase()}
+              {pos ? `LEVEL ${pos.index} OF ${pos.count}` : level.title.toUpperCase()}
             </span>
             <span>
               {Math.min(session.answers.length + (phase === 'ask' ? 1 : 0), level.questions)} / {level.questions}
@@ -141,7 +159,7 @@ export function Drill({ level, onDone, onFinish }: { level: LevelDef; onDone?: (
         </span>
       </header>
 
-      {q && <Prompt q={q} coordsOn={coordsOn} />}
+      {q && (earsOnly && spokenPrompt(q) ? <EarsPrompt q={q} onReplay={() => void say(q)} /> : <Prompt q={q} coordsOn={coordsOn} />)}
 
       {q && (
         <div className="drill__board">
@@ -192,6 +210,35 @@ function viewNote(q: Question, coordsOn: boolean): string {
   const side = q.orientation === 'white' ? "White's view" : "Black's view";
   const labels = q.labels && coordsOn ? 'coordinates on' : 'labels off';
   return `${side} · ${labels} · ${secs(q.targetMs)} target`;
+}
+
+/** What Ears only says for questions you answer on the board; null for ones that need you to see the board. */
+export function spokenPrompt(q: Question): string | null {
+  switch (q.kind) {
+    case 'tapSquare':
+      return squareWords(q.square);
+    case 'readMove':
+      return `${q.move.color === 'w' ? 'White' : 'Black'}: ${moveToWords(q.move)}`;
+    case 'knightPath':
+      return `Knight from ${squareWords(q.from)} to ${squareWords(q.to)}, in two hops`;
+    default:
+      return null;
+  }
+}
+
+function EarsPrompt({ q, onReplay }: { q: Question; onReplay: () => void }) {
+  const what = q.kind === 'tapSquare' ? 'Tap the square you hear' : q.kind === 'readMove' ? 'Play the move you hear' : 'Move the knight to a square in between';
+  return (
+    <div className="prompt prompt--split">
+      <div>
+        <p className="prompt__kicker">Ears only</p>
+        <h1>{what}</h1>
+      </div>
+      <button type="button" className="chip prompt__replay" onClick={onReplay}>
+        Hear it again
+      </button>
+    </div>
+  );
 }
 
 function Prompt({ q, coordsOn }: { q: Question; coordsOn: boolean }) {
@@ -473,7 +520,7 @@ function Results({
   return (
     <div className="app results">
       <p className="eyebrow">
-        Stage {level.stage} · Level {idx + 1} · {level.title}
+        Stage {level.stage} · {level.title}
       </p>
       <h1 className={passed ? 'results__win' : ''}>{passed ? 'Level passed' : 'Not yet'}</h1>
       <p className="muted">

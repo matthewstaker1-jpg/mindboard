@@ -195,9 +195,6 @@ export function levelById(id: string): LevelDef | undefined {
   return LADDER.find((l) => l.id === id);
 }
 
-export function levelNumber(id: string): number {
-  return LADDER.findIndex((l) => l.id === id) + 1;
-}
 
 export interface SessionSummary {
   correct: number;

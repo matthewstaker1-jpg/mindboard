@@ -4,11 +4,12 @@ import type { StudyPosition } from '../chess/positions';
 import { strengthFor } from '../engine/engine';
 import { hiddenMode, playerMoveSquares, playerMoveTyped } from '../game/fogGame';
 import type { GameLevel } from '../levels/games';
+import { usePref } from '../progress/store';
 import { useKeys } from '../ui/keypads';
 import { CoordsToggle, useCoordsPref } from '../ui/prefs';
 import { GameResult } from './game/GameResult';
 import { BackLink, LastMove, MoveInput, MoveList, PeekButton, RecallPanel, goalLabel, hideLabel } from './game/parts';
-import { useFogGame } from './game/useFogGame';
+import { useEarsOnlyReplies, useFogGame } from './game/useFogGame';
 import { VoicePanel } from './VoicePanel';
 import './FogGame.css';
 
@@ -22,9 +23,13 @@ export interface FogGameProps {
 
 export function FogGame({ level, scenario, onDone }: FogGameProps) {
   const [coordsOn] = useCoordsPref();
+  const [earsOnly] = usePref('earsOnly');
+  const [voiceOn] = usePref('voice');
+  // Ears only: the engine's move is spoken and not written (the voice panel speaks it itself when voice is on).
   const g = useFogGame(level, scenario);
   const { s, dispatch, fen, fenPieces, peeking, yourTurn, elo, orientation, handle } = g;
   const { game, studying } = s;
+  useEarsOnlyReplies(earsOnly && !voiceOn, game);
   const last = game.moves.at(-1);
   const view = game.shownAs.view;
   const youAre = game.color === 'w' ? 'White' : 'Black';
@@ -43,7 +48,8 @@ export function FogGame({ level, scenario, onDone }: FogGameProps) {
     const hl: Partial<Record<Square, Highlight>> = {};
     const marks: Partial<Record<Square, string>> = {};
     const dark = view === 'dark' && !showAll;
-    if (last) {
+    // Ears only: the last move is heard, not shown.
+    if (last && !(earsOnly && !showAll)) {
       hl[last.from] = 'from';
       hl[last.to] = dark ? 'target' : 'from';
       if (dark) marks[last.to] = last.san.replace(/[+#]/g, '');
@@ -114,7 +120,8 @@ export function FogGame({ level, scenario, onDone }: FogGameProps) {
         </section>
       )}
 
-      {!studying && (view !== 'board' || !game.shownAs.showMoveList) && <LastMove game={game} />}
+      {!studying && !earsOnly && (view !== 'board' || !game.shownAs.showMoveList) && <LastMove game={game} />}
+      {!studying && earsOnly && <p className="muted game__ears">Ears only: listen for each move.</p>}
 
       {bp && (
         <div className="game__board" data-peeking={peeking || undefined}>
@@ -139,7 +146,7 @@ export function FogGame({ level, scenario, onDone }: FogGameProps) {
         </button>
       ) : (
         <>
-          {(game.shownAs.showMoveList || view === 'list') && <MoveList game={game} />}
+          {!earsOnly && (game.shownAs.showMoveList || view === 'list') && <MoveList game={game} />}
 
           {s.message && (
             <p className={`game__msg game__msg--${s.message.tone}`}>

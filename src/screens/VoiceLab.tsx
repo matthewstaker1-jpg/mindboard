@@ -10,6 +10,9 @@ const START = 'rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1';
 interface Entry {
   at: string;
   alts: Alternative[];
+  /** The move you meant to say, when you filled it in: makes the log usable for tuning. */
+  intended?: string;
+  fen?: string;
 }
 
 /**
@@ -22,11 +25,20 @@ export function VoiceLab() {
   const [error, setError] = useState<string | null>(null);
   const [log, setLog] = useState<Entry[]>([]);
   const [typed, setTyped] = useState('');
+  const [intended, setIntended] = useState('');
+  // Everything heard this visit, for the downloadable tuning log (the list shows the latest 20).
+  const [all, setAll] = useState<Entry[]>([]);
   const rec = useRef(new WebSpeechRecogniser());
+  const meta = useRef({ intended, fen });
+  meta.current = { intended, fen };
 
   useEffect(() => {
     const r = rec.current;
-    r.onPhrase = (alts) => setLog((l) => [{ at: new Date().toLocaleTimeString(), alts }, ...l].slice(0, 20));
+    r.onPhrase = (alts) => {
+      const e: Entry = { at: new Date().toISOString(), alts, intended: meta.current.intended || undefined, fen: meta.current.fen };
+      setLog((l) => [e, ...l].slice(0, 20));
+      setAll((l) => [...l, e]);
+    };
     r.onState = setListening;
     r.onError = setError;
     return () => r.stop();
@@ -70,6 +82,17 @@ export function VoiceLab() {
         </button>
       </div>
       {error && <p className="game__msg game__msg--warn">{error}</p>}
+      <label className="lab__fen">
+        <span>The move you're about to say (optional, for the log)</span>
+        <input className="mono" value={intended} onChange={(e) => setIntended(e.target.value)} placeholder="e.g. Nf3" spellCheck={false} />
+      </label>
+      {all.length > 0 && (
+        <div className="lab__row">
+          <button type="button" className="btn" onClick={() => downloadLog(all)}>
+            Download log ({all.length} phrase{all.length === 1 ? '' : 's'})
+          </button>
+        </div>
+      )}
       <form
         className="lab__row"
         onSubmit={(e) => {
@@ -118,4 +141,18 @@ export function VoiceLab() {
         })}
     </div>
   );
+}
+
+/** Save what was heard, with what was meant, so thresholds and sound-alikes can be tuned on real speech. */
+function downloadLog(entries: Entry[]) {
+  const rows = entries.map((e) => {
+    const r = e.fen ? matchSpokenMove(e.alts, e.fen) : null;
+    return { ...e, verdict: r?.kind, played: r?.kind === 'confident' ? r.move.san : undefined, top: r?.scored.slice(0, 3).map((x) => [x.move.san, +x.score.toFixed(3)]) };
+  });
+  const blob = new Blob([JSON.stringify({ app: 'mindboard-voice-log', userAgent: navigator.userAgent, entries: rows }, null, 1)], { type: 'application/json' });
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = `mindboard-voice-log-${new Date().toISOString().slice(0, 10)}.json`;
+  a.click();
+  setTimeout(() => URL.revokeObjectURL(a.href), 1000);
 }

@@ -209,7 +209,7 @@ function revealHighlights(r: FollowRound): Partial<Record<Square, Highlight>> {
   const hl: Partial<Record<Square, Highlight>> = {};
   for (const q of r.questions) {
     if (q.kind === 'where') for (const a of q.answers) hl[a] = 'target';
-    else hl[q.square] = 'from';
+    else hl[q.square] = q.kind === 'yesNo' ? 'warn' : 'from';
   }
   return hl;
 }

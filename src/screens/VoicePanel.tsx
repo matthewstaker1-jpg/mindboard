@@ -10,6 +10,8 @@ import { Speaker, WebSpeechRecogniser } from '../voice/recogniser';
 import { usePref } from '../progress/store';
 import './VoicePanel.css';
 
+/** Phrases heard this soon after the app stops talking are treated as its own echo. */
+const ECHO_TAIL_MS = 700;
 /** How long you have to say "no" after a move is read back. */
 const CANCEL_MS = 1500;
 /** Board questions cost peek time, so they can't replace remembering. */
@@ -52,6 +54,9 @@ export function VoicePanel({ game, fen, yourTurn, onMove, onTakeBack, onResign, 
     setStatus(text);
     speaking.current = true;
     await speaker.current.speak(text);
+    // Recognition results lag the audio; without headphones the tail of our own
+    // voice can still arrive as a "phrase" after speech ends. Keep ignoring for a moment.
+    await new Promise((r) => setTimeout(r, ECHO_TAIL_MS));
     speaking.current = false;
   };
 

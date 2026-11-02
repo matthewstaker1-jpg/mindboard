@@ -17,11 +17,27 @@ export function CoordsToggle({ allowed }: { allowed: boolean }) {
       role="switch"
       aria-checked={shown}
       disabled={!allowed}
+      aria-label="Coordinates"
       title={allowed ? 'Show letters and numbers on the board' : 'This level hides coordinates'}
       onClick={() => set(!on)}
     >
-      <span className="coords-toggle__label">a1</span>
+      <span className="coords-toggle__label">Coords</span>
       <span className="coords-toggle__track" data-on={shown || undefined}>
+        <span className="coords-toggle__thumb" />
+      </span>
+    </button>
+  );
+}
+
+/** A labelled on/off switch for the Settings screen. */
+export function Switch({ label, hint, on, onChange }: { label: string; hint: string; on: boolean; onChange: (v: boolean) => void }) {
+  return (
+    <button type="button" className="setting" role="switch" aria-checked={on} onClick={() => onChange(!on)}>
+      <span className="setting__text">
+        <span className="setting__label">{label}</span>
+        <span className="muted setting__hint">{hint}</span>
+      </span>
+      <span className="coords-toggle__track" data-on={on || undefined}>
         <span className="coords-toggle__thumb" />
       </span>
     </button>
