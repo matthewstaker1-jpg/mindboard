@@ -12,5 +12,6 @@ Read `BUILD_PLAN.md` before doing anything. It's the spec: stack, architecture, 
 - Plan before coding, and show me the plan for any phase.
 - Keep chess logic (chess.js, engine, move matching) out of React components so it can be unit tested.
 - Write tests for the board's square/orientation mapping, the SAN parser, and the spoken-move matcher.
-- Commit after each working step with a clear message.
+- Commit after each working step with a clear message. Run `npm run check` (typecheck, lint, tests) first; CI runs the same plus the build.
+- Browser checks use a separate save: add `?profile=test` to the URL so test runs never touch real progress.
 - Mic access needs a secure context: localhost is fine; testing on a phone over Wi-Fi needs HTTPS (e.g. vite-plugin-mkcert or a tunnel).

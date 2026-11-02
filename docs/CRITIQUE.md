@@ -2,8 +2,8 @@
 
 A deliberately harsh list of what's wrong with the app as it stands after the
 Phase 2 follow-ups (hold-to-peek, fade-as-they-move, Study and continue,
-Follow the moves, Today, lost-track detection, voice). Nothing here has been
-fixed yet; this is the list to work from. Most important first within each
+Follow the moves, Today, lost-track detection, voice). The status of every
+point after the fix pass is at the bottom. Most important first within each
 section; the overall top ten is at the bottom.
 
 ## Does it actually teach blindfold chess?
@@ -132,3 +132,52 @@ section; the overall top ten is at the bottom.
 8. Engine timeout and loading progress (14).
 9. Split FogGame into a reducer and smaller components; add ESLint and CI (34–37).
 10. Update BUILD_PLAN.md to match what was actually built (41).
+
+## Status after the fix pass (2026-11-02)
+
+✅ fixed · 🟡 partly / needs you · ⬜ open (by decision or out of reach here)
+
+| # | Status | What changed |
+|---|---|---|
+| 1 | ✅ | Measured with `scripts/calibrate.ts` (200-game matches vs Stockfish UCI_Elo 1320): old "800/1000/1200" play at 749/894/1048. The app shows measured ratings; offset is per level. |
+| 2 | ✅ | Game levels pass on 2 of the last 3; placement test skips Stages 1–2. |
+| 3 | ✅ | 3,676 lines, 400 middlegames, 200 mates, 100 pawn endings from Lichess (CC0). |
+| 4 | ✅ | Depth 14, 200 cp margin, a clearly winning finish always passes. |
+| 5 | ✅ | Slips go to separate lost-track stats. |
+| 6 | ✅ | Cross-day spaced repetition (1/3/7/16/30 days); due squares weighted 4×. |
+| 7 | ✅ | Recall checks are an opt-in setting; the drop-back works again when on. |
+| 8 | ✅ | Yes/no questions: "is it attacked?", "can it take?". |
+| 9 | ✅ | Study "As they move" fade, pawn endings, mate puzzles as easier goals. |
+| 10 | ✅ | 3 s misclick grace for board slips; first take-back free. |
+| 11 | ✅ | Hidden pieces can be dragged. |
+| 12 | ✅ | Board promotions ask which piece. |
+| 13 | ✅ | Blocked paths and own-piece targets are explained. Two-pieces-swapped confusion still isn't detected. |
+| 14 | ✅ | 15 s search timeout with worker restart; engine download progress. |
+| 15 | ✅ | Review on its own worker, shallower on long games, retry on failure. |
+| 16 | ✅ | Settings measured; see 1. |
+| 17 | 🟡 | Needs you: a real-microphone session. The Voice lab now downloads a log with what you meant. |
+| 18 | 🟡 | Platform limit; now stated plainly in Settings and Help. |
+| 19 | ✅ | 700 ms echo tail after speaking. Headphones still recommended. |
+| 20 | 🟡 | Tune once there are real logs (17). |
+| 21 | ⬜ | Browser limit; needs the native wrapper (Phase 5). |
+| 22 | ✅ | First-launch walkthrough with a placement-test option. |
+| 23 | ✅ | Path folds to the current stage; Settings and Help moved off the page. |
+| 24 | ✅ | Two-column Journey and game screens on laptops. |
+| 25 | ✅ | Help page glossary; levels numbered within stages; measured ratings explained. |
+| 26 | ✅ | Labelled "Coords"; explained in Settings. |
+| 27 | ✅ | Locked levels stay locked from the address bar. |
+| 28 | ⬜ | Clocks, bottom nav, XP: deliberately out of scope for now. |
+| 29 | 🟡 | Highlight shapes, bigger labels, focus rings. Board *moves* by keyboard still go through the typed move box. |
+| 30 | 🟡 | `?profile=test` keeps test runs separate from now on. Existing polluted saves can't be told apart: use Reset in Settings if yours is affected. |
+| 31 | ✅ | BroadcastChannel sync + reload on focus. |
+| 32 | 🟡 | Back up / Restore added; settings now in the same save. No cloud sync. |
+| 33 | ✅ | Save format v2 with step-by-step migrations and field validation. |
+| 34 | ✅ | Game screen split into a reducer, a hook and parts. |
+| 35 | ✅ | ESLint added and clean. |
+| 36 | 🟡 | Screen tests for the game screen and reducer; no end-to-end browser suite yet. |
+| 37 | ✅ | GitHub Actions: typecheck, lint, tests, build. |
+| 38 | ✅ | Stray colours moved into tokens. |
+| 39 | ✅ | PNG, maskable and Apple touch icons. |
+| 40 | ⬜ | Licensing decision for you; noted in the README. |
+| 41 | ✅ | BUILD_PLAN.md rewritten to match what's built. |
+| 42 | 🟡 | README gives the one-line `~/.zshrc` fix; not applied to your shell. |
