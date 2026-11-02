@@ -16,8 +16,8 @@ export interface LevelRecord {
   games?: { win: number; draw: number; loss: number };
 }
 
-export type StudyKind = 'middlegame' | 'endgame' | 'any';
-export type StudyHide = 'own-all' | 'all';
+export type StudyKind = 'middlegame' | 'endgame' | 'mate' | 'any';
+export type StudyHide = 'moved' | 'own-all' | 'all';
 
 /** Your settings. They live in the same saved document as progress so export/import carries them. */
 export interface Prefs {

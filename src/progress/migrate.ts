@@ -64,8 +64,8 @@ function cleanPrefs(v: unknown): Progress['prefs'] {
     earsOnly: bool(v.earsOnly, d.earsOnly),
     recallChecks: bool(v.recallChecks, d.recallChecks),
     study: {
-      kind: study.kind === 'middlegame' || study.kind === 'endgame' || study.kind === 'any' ? study.kind : d.study.kind,
-      hide: study.hide === 'all' || study.hide === 'own-all' ? study.hide : d.study.hide,
+      kind: study.kind === 'middlegame' || study.kind === 'endgame' || study.kind === 'mate' || study.kind === 'any' ? study.kind : d.study.kind,
+      hide: study.hide === 'all' || study.hide === 'own-all' || study.hide === 'moved' ? study.hide : d.study.hide,
     },
     follow: { pace: Math.min(2, Math.max(0, Math.round(num(follow.pace, d.follow.pace)))), aloud: bool(follow.aloud, d.follow.aloud) },
     onboarded: bool(v.onboarded, d.onboarded),

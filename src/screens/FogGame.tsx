@@ -105,7 +105,10 @@ export function FogGame({ level, scenario, onDone }: FogGameProps) {
             You're {youAre}. {scenario.note}
           </h2>
           <p className="muted">
-            Take as long as you like. When you're ready, {level.hide.kind === 'all' ? 'every piece' : 'your pieces'} will disappear.
+            Take as long as you like.{' '}
+            {level.hide.kind === 'moved'
+              ? 'Each of your pieces disappears once it has moved.'
+              : `When you're ready, ${level.hide.kind === 'all' ? 'every piece' : 'your pieces'} will disappear.`}
           </p>
         </section>
       )}

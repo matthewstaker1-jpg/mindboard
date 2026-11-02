@@ -193,16 +193,16 @@ export function easierLevel(id: string): GameLevel | null {
 }
 
 /** The settings a study position is played under: how much fades once you're ready. */
-export function studyLevel(hide: 'own-all' | 'all'): GameLevel {
+export function studyLevel(hide: 'moved' | 'own-all' | 'all'): GameLevel {
   return {
     id: `study-${hide}`,
     mode: 'game',
     stage: 3,
-    title: hide === 'all' ? 'Study · everything hidden' : 'Study · your pieces hidden',
+    title: hide === 'all' ? 'Study · everything hidden' : hide === 'moved' ? 'Study · fade as they move' : 'Study · your pieces hidden',
     blurb: 'Study a position, then play on with it hidden.',
     engineElo: 1000,
     side: 'white',
-    hide: hide === 'all' ? { kind: 'all' } : { kind: 'own-all' },
+    hide: hide === 'all' ? { kind: 'all' } : hide === 'moved' ? { kind: 'moved' } : { kind: 'own-all' },
     view: hide === 'all' ? 'dark' : 'board',
     showMoveList: true,
     peekBudgetMs: 20_000,

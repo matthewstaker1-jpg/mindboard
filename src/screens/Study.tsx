@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { ENDGAMES, type StudyPosition, middlegamePositions } from '../chess/positions';
+import { type StudyPosition, allStudyPositions, endgamePositions, matePositions, middlegamePositions } from '../chess/positions';
 import { studyLevel } from '../levels/games';
 import type { StudyKind } from '../progress/progress';
 import { usePref, useProgress } from '../progress/store';
@@ -7,7 +7,14 @@ import { FogGame } from './FogGame';
 import './Study.css';
 
 function pick(kind: StudyKind): StudyPosition {
-  const pool = kind === 'middlegame' ? middlegamePositions() : kind === 'endgame' ? ENDGAMES : [...middlegamePositions(), ...ENDGAMES];
+  const pools: Record<StudyKind, () => StudyPosition[]> = {
+    middlegame: middlegamePositions,
+    endgame: endgamePositions,
+    mate: matePositions,
+    any: allStudyPositions,
+  };
+  let pool = pools[kind]();
+  if (pool.length === 0) pool = allStudyPositions();
   return pool[Math.floor(Math.random() * pool.length)]!;
 }
 
@@ -44,9 +51,9 @@ export function Study({ onDone }: { onDone?: () => void }) {
       <div className="study-setup__row">
         <span>Positions</span>
         <div className="seg" role="group" aria-label="Kind of position">
-          {(['middlegame', 'endgame', 'any'] as const).map((k) => (
+          {(['middlegame', 'endgame', 'mate', 'any'] as const).map((k) => (
             <button key={k} type="button" data-on={prefs.kind === k || undefined} onClick={() => save({ ...prefs, kind: k })}>
-              {k === 'any' ? 'Both' : k[0]!.toUpperCase() + k.slice(1) + 's'}
+              {k === 'any' ? 'All' : k[0]!.toUpperCase() + k.slice(1) + 's'}
             </button>
           ))}
         </div>
@@ -54,9 +61,9 @@ export function Study({ onDone }: { onDone?: () => void }) {
       <div className="study-setup__row">
         <span>Then hide</span>
         <div className="seg" role="group" aria-label="What fades">
-          {(['own-all', 'all'] as const).map((h) => (
+          {(['moved', 'own-all', 'all'] as const).map((h) => (
             <button key={h} type="button" data-on={prefs.hide === h || undefined} onClick={() => save({ ...prefs, hide: h })}>
-              {h === 'all' ? 'Everything' : 'Your pieces'}
+              {h === 'all' ? 'Everything' : h === 'moved' ? 'As they move' : 'Your pieces'}
             </button>
           ))}
         </div>

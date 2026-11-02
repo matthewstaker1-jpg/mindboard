@@ -5,6 +5,7 @@ import { Chess, type Move } from 'chess.js';
 import { FILES, type Square, isLightSquare } from '../board/squares';
 import { PIECE_NAME } from '../chess/game';
 import { OPENING_LINES } from '../chess/openings';
+import { content } from '../content/content';
 import type { Rng } from './queue';
 
 export type FollowQuestion =
@@ -88,8 +89,8 @@ function whatsOnQuestion(chess: Chess, moves: Move[], rng: Rng, avoid: Set<strin
   return { kind: 'whatsOn', prompt: `What's on ${sq}?`, square: sq, options: shuffle([answer, ...wrong], rng), answer };
 }
 
-export function makeFollowRound(plies: number, rng: Rng): FollowRound {
-  const lines = OPENING_LINES.filter((l) => l.moves.length >= Math.min(plies, 20));
+export function makeFollowRound(plies: number, rng: Rng, pool: { name: string; moves: string[] }[] = content()?.lines ?? OPENING_LINES): FollowRound {
+  const lines = pool.filter((l) => l.moves.length >= Math.min(plies, 30));
   const line = lines[Math.floor(rng() * lines.length)] ?? OPENING_LINES[0]!;
   const n = Math.min(plies, line.moves.length);
   const chess = new Chess();

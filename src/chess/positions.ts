@@ -1,7 +1,9 @@
 // Positions for "Study and continue": study one, it fades, then play a short
-// goal from it. Middlegames come from the ends of the opening lines, so they
-// look like real games; endgames are hand-picked with clear targets.
+// goal from it. Middlegames and puzzles come from real Lichess games (see
+// src/content); the opening-line ends and hand-picked endgames are the
+// fallback until that content has loaded.
 
+import { content } from '../content/content';
 import type { Goal } from '../game/fogGame';
 import { replayLine } from './game';
 import { OPENING_LINES } from './openings';
@@ -53,22 +55,55 @@ export const ENDGAMES: StudyPosition[] = [
   },
 ];
 
+const HOLD_NOTE = 'Play 8 good moves without losing track. Keep the position at least as good as you found it.';
+
 let middlegames: StudyPosition[] | null = null;
+let lineEnds: StudyPosition[] | null = null;
 
 export function middlegamePositions(): StudyPosition[] {
-  middlegames ??= OPENING_LINES.map((line, i) => {
+  const c = content();
+  if (c) {
+    middlegames ??= c.middlegames.map((p) => ({ id: p.id, title: p.title, fen: p.fen, goal: { kind: 'moves', n: 8 }, note: HOLD_NOTE }));
+    return middlegames;
+  }
+  lineEnds ??= OPENING_LINES.map((line, i) => {
     const last = replayLine(line.moves, line.name).at(-1)!;
     return {
       id: `mg-${i}`,
       title: line.name,
       fen: last.fenAfter,
       goal: { kind: 'moves', n: 8 } as Goal,
-      note: 'Play 8 good moves without losing track. Keep the position at least as good as you found it.',
+      note: HOLD_NOTE,
     };
   });
-  return middlegames;
+  return lineEnds;
+}
+
+function puzzles(kind: 'mate' | 'promote'): StudyPosition[] {
+  return (content()?.puzzles ?? [])
+    .filter((p) => p.goal?.kind === kind)
+    .map((p) => ({
+      id: p.id,
+      title: p.title,
+      fen: p.fen,
+      goal: p.goal!,
+      note:
+        p.goal!.kind === 'mate'
+          ? `From a real game. There's a forced mate in ${p.goal!.within - 1}: find it without seeing your pieces.`
+          : 'From a real game. Get a pawn through to promotion.',
+    }));
+}
+
+/** Mate puzzles from real games. */
+export function matePositions(): StudyPosition[] {
+  return puzzles('mate');
+}
+
+/** The hand-picked basic endgames plus pawn endings from real games. */
+export function endgamePositions(): StudyPosition[] {
+  return [...ENDGAMES, ...puzzles('promote')];
 }
 
 export function allStudyPositions(): StudyPosition[] {
-  return [...middlegamePositions(), ...ENDGAMES];
+  return [...middlegamePositions(), ...endgamePositions(), ...matePositions()];
 }
