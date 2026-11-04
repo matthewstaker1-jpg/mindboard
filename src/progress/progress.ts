@@ -145,16 +145,21 @@ export function movedOnLevels(p: Progress): string[] {
 }
 
 /**
- * Index into ALL_LEVELS of the first level neither passed nor moved on from;
- * ALL_LEVELS.length when there's none left.
+ * Index into ALL_LEVELS of where to carry on. Every level is open, so this
+ * follows you: the furthest level you've played if it's unfinished, otherwise
+ * the one after it, then any earlier one you skipped. ALL_LEVELS.length when
+ * nothing is left.
  */
 export function currentLevelIndex(p: Progress): number {
-  const i = ALL_LEVELS.findIndex((l) => !isPassed(p, l.id) && !isMovedOn(p, l.id));
-  return i === -1 ? ALL_LEVELS.length : i;
-}
-
-export function isUnlocked(p: Progress, index: number): boolean {
-  return index <= currentLevelIndex(p);
+  const finished = (i: number) => isPassed(p, ALL_LEVELS[i]!.id) || isMovedOn(p, ALL_LEVELS[i]!.id);
+  let furthest = -1;
+  ALL_LEVELS.forEach((l, i) => {
+    if (finished(i) || (p.levels[l.id]?.attempts ?? 0) > 0) furthest = i;
+  });
+  if (furthest >= 0 && !finished(furthest)) return furthest;
+  if (furthest + 1 < ALL_LEVELS.length) return furthest + 1;
+  const skipped = ALL_LEVELS.findIndex((_, i) => !finished(i));
+  return skipped === -1 ? ALL_LEVELS.length : skipped;
 }
 
 export function levelsPassed(p: Progress): number {

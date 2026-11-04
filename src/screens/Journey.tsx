@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { Board, type Highlight } from '../board/Board';
 import { EMPTY_FEN, type Orientation, type Square } from '../board/squares';
 import { ALL_LEVELS, STAGE_NAMES, isGameLevel, levelHref, stagePosition } from '../levels/all';
-import { currentLevelIndex, dayKey, displayStreak, engineOffset, shownElo, isMovedOn, isPassed, isUnlocked, levelsPassed, movedOnLevels, lostTrackSquares, dueSquares, recentPasses, withPrefs } from '../progress/progress';
+import { currentLevelIndex, dayKey, displayStreak, engineOffset, shownElo, isMovedOn, isPassed, levelsPassed, movedOnLevels, lostTrackSquares, dueSquares, recentPasses, withPrefs } from '../progress/progress';
 import { weakestSquares } from '../progress/stats';
 import { currentProfile, useProgress } from '../progress/store';
 import './Journey.css';
@@ -221,11 +221,10 @@ export function Journey() {
               {ALL_LEVELS.map((l, i) => {
                 if (l.stage !== stage) return null;
                 const passed = isPassed(progress, l.id);
-                const open = isUnlocked(progress, i);
                 const rec = progress.levels[l.id];
                 const best = rec?.best;
                 const back = isMovedOn(progress, l.id);
-                const state = passed ? 'done' : back ? 'back' : i === cur ? 'cur' : open ? 'open' : 'lock';
+                const state = passed ? 'done' : back ? 'back' : i === cur ? 'cur' : 'open';
                 const body = (
                   <>
                     <span className="path__node" data-state={state}>
@@ -244,7 +243,7 @@ export function Journey() {
                 );
                 return (
                   <li key={l.id} data-state={state}>
-                    {open ? <a href={levelHref(l)}>{body}</a> : <div>{body}</div>}
+                    <a href={levelHref(l)}>{body}</a>
                   </li>
                 );
               })}
@@ -253,7 +252,7 @@ export function Journey() {
         ))}
         {!allDone && (
           <button type="button" className="path__more" onClick={() => setAllStages(!allStages)}>
-            {allStages ? 'Show just this stage' : 'Show all four stages'}
+            {allStages ? 'Show just this stage' : 'Jump to any level'}
           </button>
         )}
         <ol className="path__later">

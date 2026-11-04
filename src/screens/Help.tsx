@@ -36,7 +36,7 @@ export function Help() {
         <dd>A dark board, a move list only, and finally no board at all.</dd>
       </dl>
       <p className="muted">
-        Already know the board? The placement test on the home screen can skip Stages 1 and 2 in a few minutes.
+        Every level is open: tap "Jump to any level" on the home screen to start anywhere. Already know the board? The placement test can skip Stages 1 and 2 in a few minutes.
       </p>
 
       <h2>Words you'll see</h2>

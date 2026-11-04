@@ -165,7 +165,7 @@ section; the overall top ten is at the bottom.
 | 24 | ✅ | Two-column Journey and game screens on laptops. |
 | 25 | ✅ | Help page glossary; levels numbered within stages; measured ratings explained. |
 | 26 | ✅ | Labelled "Coords"; explained in Settings. |
-| 27 | ✅ | Locked levels stay locked from the address bar. |
+| 27 | ✅ | No longer applies: every level is open by choice, so devices without synced progress can jump straight in. |
 | 28 | ⬜ | Clocks, bottom nav, XP: deliberately out of scope for now. |
 | 29 | 🟡 | Highlight shapes, bigger labels, focus rings. Board *moves* by keyboard still go through the typed move box. |
 | 30 | 🟡 | `?profile=test` keeps test runs separate from now on. Existing polluted saves can't be told apart: use Reset in Settings if yours is affected. |

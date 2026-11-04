@@ -106,7 +106,7 @@ Known limits: Chrome only; needs a connection; audio goes to Google; a phone's l
 - Tabs share saves over `BroadcastChannel` and reload when they become visible again.
 - **Back up / Restore** (JSON) in Settings.
 - `?profile=NAME` in the URL keeps a separate save: use it for tests and demos (e.g. `http://localhost:5173/?profile=test#/`).
-- Locked levels stay locked from the address bar.
+- Every level is open: pick any one from the Journey path. Your place follows the furthest level you've played.
 
 ## Phases
 
